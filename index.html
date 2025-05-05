@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Merge PWA</title>
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json">
+  <!-- Materialize CSS (local) -->
+  <link href="libs/materialize.min.css" rel="stylesheet">
+  <!-- Custom Styles -->
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+  <!-- ナビゲーション -->
+  <nav>
+    <div class="nav-wrapper primary-bg">
+      <a href="#" class="brand-logo center white-text">PDF Merge</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- ファイル選択 -->
+    <div class="file-field input-field">
+      <div class="btn primary-bg">
+        <span>PDF 選択</span>
+        <input type="file" id="file-input" accept="application/pdf" multiple>
+      </div>
+      <div class="file-path-wrapper">
+        <input class="file-path validate" type="text" placeholder="PDFファイルを選択">
+      </div>
+    </div>
+
+    <!-- 操作ボタン -->
+    <div class="section">
+      <button id="rotate-btn" class="btn accent-bg black-text">個別回転</button>
+      <button id="align-vert-btn" class="btn accent-bg black-text">全て縦そろえ</button>
+      <button id="align-horz-btn" class="btn accent-bg black-text">全て横そろえ</button>
+      <button id="merge-btn" class="btn accent-bg black-text">マージ実行</button>
+    </div>
+
+    <!-- 出力リンク -->
+    <div class="section">
+      <a id="download-link" class="btn accent-bg black-text disabled" download="merged.pdf">PDFをダウンロード</a>
+    </div>
+  </main>
+
+  <!-- Libraries -->
+  <script src="libs/pdf-lib.min.js"></script>
+  <script src="pdfjs/pdf.js"></script>
+  <script>
+    // PDF.js ワーカー設定
+    if (window['pdfjsLib']) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdfjs/pdf.worker.min.js';
+    }
+  </script>
+  <!-- Materialize JS (local) -->
+  <script src="libs/materialize.min.js"></script>
+  <!-- Main Script -->
+  <script src="js/main.js"></script>
+</body>
+</html>

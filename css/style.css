@@ -1,0 +1,67 @@
+/* css/style.css */
+/* Materialize CSS をベースにし、上書き用のカスタムスタイルです */
+
+/* カラースキーム */
+:root {
+  --primary-color: rgba(0, 0, 128, 0.7);  /* 紺（透過） */
+  --accent-color:  rgba(255, 235, 59, 0.7); /* 黄色（透過） */
+  --bg-color:      #ffffff;
+  --text-color:    #000000;
+}
+
+/* 全体設定 */
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'Noto Sans JP', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* ナビゲーション */
+.nav-wrapper.primary-bg {
+  background-color: var(--primary-color) !important;
+}
+.brand-logo {
+  font-size: 1.5rem;
+}
+
+/* メインコンテンツ */
+main.container {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+/* ボタン・フィールドカスタム */
+.btn.primary-bg,
+.primary-bg {
+  background-color: var(--primary-color) !important;
+}
+.btn.accent-bg,
+.accent-bg {
+  background-color: var(--accent-color) !important;
+  color: #000 !important;
+}
+
+.file-field .btn.primary-bg {
+  margin-bottom: 1rem;
+}
+.file-path-wrapper .file-path {
+  cursor: pointer;
+}
+
+a#download-link.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* レスポンシブ */
+@media only screen and (max-width: 600px) {
+  .brand-logo {
+    font-size: 1.2rem;
+  }
+  .btn {
+    font-size: 0.9rem;
+    padding: 0 1rem;
+  }
+}
