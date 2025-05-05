@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PDF Merge PWA</title>
+  <title>pdf jem</title>
   <!-- PWA manifest -->
   <link rel="manifest" href="manifest.json">
   <!-- Materialize CSS (local) -->
@@ -12,37 +12,70 @@
   <link href="css/style.css" rel="stylesheet">
 </head>
 <body>
+	<div id="background-message">
+		<h5>Open your PDF files.</h5>
+		<p>You can:</p>
+		<ul>
+			<li>Merge multiple PDFs</li>
+			<li>Change page orientation</li>
+			<li>Delete specific pages</li>
+		</ul>
+		<br>
+		<h5>PDF dosyalarınızı açın.</h5>
+		<p>Şunları yapabilirsiniz:</p>
+		<ul>
+			<li>Birden fazla PDF'yi birleştirin</li>
+			<li>Sayfa yönünü değiştirin</li>
+			<li>Belirli sayfaları silin</li>
+		</ul>
+	</div>
+	
   <!-- ナビゲーション -->
-  <nav>
-    <div class="nav-wrapper primary-bg">
-      <a href="#" class="brand-logo center white-text">PDF Merge</a>
-    </div>
-  </nav>
+	<header id="app-header">
+		<div class="header-title">PDF jem</div>
+	</header>
+	
+
+	
+
 
   <main class="container">
     <!-- ファイル選択 -->
-    <div class="file-field input-field">
-      <div class="btn primary-bg">
-        <span>PDF 選択</span>
-        <input type="file" id="file-input" accept="application/pdf" multiple>
-      </div>
-      <div class="file-path-wrapper">
-        <input class="file-path validate" type="text" placeholder="PDFファイルを選択">
-      </div>
-    </div>
+		     <!-- 操作ボタン -->
+<!-- 画面下部に固定で中央寄せ -->
+<!-- 操作ボタン（ナビゲーションのすぐ下） -->
+<div class="top-controls top-controls-fixed center-align">
+<!-- タイトル下に中央配置 -->
+<div class="header-download">
+	<a id="download-link" class="btn accent-bg nav-download-btn round-btn waves-effect " download>
+		download
+	</a>
+</div>
+  <button id="rotate-btn" class="btn primary-bg round-btn white-text">rotate ↻</button>
+  <button id="align-horz-btn" class="btn primary-bg round-btn white-text waves-effect">all ⇆</button>
+  <button id="align-vert-btn" class="btn primary-bg round-btn white-text  waves-light">all ⇅</button>
+	<button id="remove-checked-btn" class="btn red darken-2 white-text round-btn">del 🗑️</button>
 
-    <!-- 操作ボタン -->
-    <div class="section">
-      <button id="rotate-btn" class="btn accent-bg black-text">個別回転</button>
-      <button id="align-vert-btn" class="btn accent-bg black-text">全て縦そろえ</button>
-      <button id="align-horz-btn" class="btn accent-bg black-text">全て横そろえ</button>
-      <button id="merge-btn" class="btn accent-bg black-text">マージ実行</button>
-    </div>
+</div>
+
+
+<!-- 1. add pdf を下に -->
+<input type="file" id="file-input" accept="application/pdf" multiple hidden>
+<label for="file-input" class="btn nav-download-btn bottom-addpdf-btn add-pdf-wide waves-effect">open pdf</label>
+
+<!-- 2. + をその上に -->
+<input type="file" id="file-add-input" accept="application/pdf" multiple hidden>
+<label for="file-add-input" class="btn nav-download-btn bottom-plus-btn wide-plus waves-effect">＋</label>
+
+
+
+
 
     <!-- 出力リンク -->
-    <div class="section">
-      <a id="download-link" class="btn accent-bg black-text disabled" download="merged.pdf">PDFをダウンロード</a>
-    </div>
+
+				 <!-- PDF プレビュー表示エリア -->
+				 <div class="row" id="pdf-preview-area"></div>
+
   </main>
 
   <!-- Libraries -->

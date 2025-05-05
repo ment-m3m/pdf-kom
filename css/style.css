@@ -4,7 +4,7 @@
 /* カラースキーム */
 :root {
   --primary-color: rgba(0, 0, 128, 0.7);  /* 紺（透過） */
-  --accent-color:  rgba(255, 235, 59, 0.7); /* 黄色（透過） */
+  --accent-color:  rgba(255, 232, 26, 0.744); /* 黄色（透過） */
   --bg-color:      #ffffff;
   --text-color:    #000000;
 }
@@ -13,9 +13,23 @@
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
-  font-family: 'Noto Sans JP', sans-serif;
+  font-family:'Segoe UI', sans-serif, 'Noto Sans JP', sans-serif;
   margin: 0;
   padding: 0;
+}
+
+#background-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  opacity: 0.5;
+  text-align: center;
+  font-size: 1.2rem;
+	white-space: nowrap;
+  color: #000;
+  pointer-events: none;  /* ←操作を邪魔しない */
 }
 
 /* ナビゲーション */
@@ -31,6 +45,12 @@ main.container {
   padding-top: 2rem;
   padding-bottom: 2rem;
 }
+
+.btn {
+  overflow: hidden; 
+  position: relative;
+}
+
 
 /* ボタン・フィールドカスタム */
 .btn.primary-bg,
@@ -64,4 +84,335 @@ a#download-link.disabled {
     font-size: 0.9rem;
     padding: 0 1rem;
   }
+}
+
+#pdf-preview-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: start;
+}
+
+#pdf-preview-area canvas {
+  border: 1px solid #ccc;
+  width: auto;
+  height: auto;
+  max-width: 150px; /* 最大幅 */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	transition: transform 0.3s;
+}
+
+.thumbnail-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+
+
+
+.thumbnail-wrapper .card-image {
+  position: relative;
+  padding: 0;
+}
+
+.thumbnail-wrapper canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  transition: transform 0.3s;
+}
+
+/* 丸みを帯びたボタン共通 */
+.round-btn {
+  border-radius: 24px !important;
+}
+
+/* ヘッダーのダウンロードボタン */
+.header-download {
+	position: absolute;
+  top: -47px;               /* ← navの高さに応じて調整 */
+	right: 1%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  text-align: center;
+  margin: 1rem 0;
+  margin-top: 0.5rem !important;  /* 元は 1rem くらいでした */
+  text-align: center;
+}
+
+/* ダウンロードボタン */
+.nav-download-btn {
+  display: flex;
+  align-items: center;     /* 上下中央に */
+  justify-content: center; /* 左右中央に */
+  height: 2.5em;           /* 少し高さを確保 */
+  line-height: normal;     /* 高さに依存しない */
+  padding: 0 1.5rem;       /* 横幅調整 */
+}
+
+
+
+/* 画面下部右下：add pdf */
+.bottom-addpdf-btn {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+}
+
+/* 画面下部右下の上：＋ボタン */
+.bottom-plus-btn {
+  position: fixed;
+  bottom: 5rem;
+  right: 1rem;
+  z-index: 1000;
+}
+
+/* ナビゲーションタイトルを左寄せ */
+.nav-wrapper .brand-logo.left {
+  left: 1rem !important;
+  transform: none !important;
+}
+/* ボタン共通の影 */
+.btn.round-btn,
+.btn.nav-download-btn {
+  /* 水平方向オフセット, 垂直方向オフセット, ぼかし, 色(透明度) */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ホバー時に影を強く */
+.btn.round-btn:hover,
+.btn.nav-download-btn:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3) !important;
+	
+}
+
+/* ──────────────────────────────────── */
+/* 1. 上部の帯の色を #0a1d4d、文字白に */
+.nav-wrapper.primary-bg {
+  background-color: #0a1d4d !important;  /* 帯 */
+}
+
+/* 2. 下部中央の操作ボタン（rotate, Landscape, portrait）の色 */
+.fixed-footer .btn.round-btn {
+  background-color: #0a1d4d !important;
+  color: #fff         !important;
+}
+
+/* 3.「add pdf」「＋」ボタンの色 */
+.bottom-addpdf-btn,
+.bottom-plus-btn {
+  background-color: #ffe600 !important; /* 黄 */
+  color: #0a1d4d     !important;        /* 紺文字 */
+}
+
+/* 4. download ボタンの色＆丸み */
+.nav-download-btn {
+  background-color: #23210e !important; /* 黄 */
+  color: #0a1d4d     !important;        /* 紺文字 */
+  border-radius: 24px !important;       /* portrait と同じ丸み */
+}
+
+
+/* wide-plus: ＋ボタンを横に広くする */
+.wide-plus {
+  min-width: 2.5em !important;
+  height: 2.5em !important;                   /* 高さも正方形に */
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 !important;  
+}
+
+/* add pdf ボタン専用：横幅を広めに */
+.add-pdf-wide {
+  min-width: 100px !important;   /* ←ここで横幅を調整 */
+  height: 45px     !important;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 !important;
+	z-index: 20000;
+}
+
+/* ロゴを白文字に */
+.nav-wrapper .brand-logo {
+  color: white !important;
+  text-decoration: none !important;
+}
+.nav-wrapper .brand-logo:visited {
+  color: white !important;
+  text-decoration: none !important;
+}
+
+
+
+.add-pdf-wide {
+  font-weight: bold;
+}
+
+.wide-plus {
+  font-weight: bold;
+}
+.top-controls {
+  display: flex;
+  justify-content: center;  /* ← 中央寄せ */
+  gap: 1rem;                /* ← ボタン間のすき間 */
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+.top-controls .btn {
+  background-color: #0a1d4d !important;  /* 紺色 */
+  color: white !important;               /* 白文字 */
+  border-radius: 24px !important;        /* 丸みを維持 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important; /* 影も維持 */
+}
+.page-number {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #333;
+  margin-top: 4px;
+}
+.card-content .page-number {
+  font-size: 1rem;
+  color: #333;
+  margin-top: 0.5rem;
+}
+
+/* 以下のCSSをstyle.cssに追加するか、
+   もしくは<style>タグをHTMLのhead内に追加してください */
+
+/* ページ番号エリアを小さくする */
+.card-content {
+  padding:5px !important; /* 標準の24pxからかなり小さく */
+  min-height: 20px;
+}
+
+.page-number {
+  font-size: 0.8rem; /* フォントサイズを小さく */
+  margin: 0;
+  line-height: 1;
+}
+
+/* ページ間の余白を狭くする */
+.thumbnail-wrapper {
+  margin-bottom: 5px !important;
+  padding: 2px !important;
+}
+
+.card {
+  margin: 0.5rem 0 !important; /* 上下の余白を小さく */
+}
+
+.row {
+  margin-bottom: 0.5rem !important; /* 行間の余白を小さく */
+}
+
+.card-image {
+  padding: 22px !important;
+}
+
+
+
+.checkbox-label span {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  padding-left: 0 !important;  /* ← これがずれの根本原因！ */
+  line-height: 24px;
+  margin: 0;
+}
+
+/* チェックボックス全体を拡大 */
+.checkbox-label {
+  transform: scale(1.5); /* ← 1.5倍に */
+  transform-origin: top left;
+  position: absolute;
+  top: 1px;
+  left: 5px;
+  z-index: 2;
+}
+
+/* チェックボックスそのもの */
+.page-checkbox {
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  z-index: 1;
+}
+
+/* チェックボックス塗りつぶしエリア */
+.page-checkbox[type="checkbox"] + span {
+  height: 2px;
+  width: 2px;
+  padding-left: 0 !important;
+  margin: 0 !important;
+  position: relative;
+  display: inline-block;
+}
+
+/* ✔マークの描画位置のみ調整（content指定は削除！） */
+.page-checkbox[type="checkbox"]:checked + span:after {
+  left: 1px !important;
+  top: 1px !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-width: 1px !important;
+  border-color: #0a1d4d !important;
+}
+
+
+/* 上部操作ボタンを固定表示に */
+.top-controls-fixed {
+  position: fixed;
+  top: 40px;
+  left: 0;
+  width: 100%;
+  background-color: #857fbb42;
+  z-index: 1000;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+#app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 56px;
+  background-color: #0a1d4d; /* 紺色 */
+  color: white;
+  display: flex;
+  align-items: center;
+	justify-content: flex-start; 
+	font-size: 1.5rem;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+	padding-left: 30px; /* 少し中央寄りにするために左余白を広めに */
+}
+
+body {
+  margin: 0;
+  padding-top: 56px; /* ヘッダーの高さと合わせる */
+}
+.header-title {
+  font-size: 2rem;
+	font-weight:bold;
+  color: white;  /* 追加 */
+}
+
+.btn.nav-download-btn {
+  background-color: rgba(255, 230, 0, 0.7) !important;  /* ← 透過黄色 */
+  color: #0a1d4d !important;                           /* 紺文字 */
+  border: 2px solid rgba(133, 153, 6, 0.3) !important;  /* 枠もやや透過 */
+	border-radius:   24px    !important;       /* 丸み */
+  box-shadow:      0 4px 8px rgba(0,0,0,0.2) !important; /* 影 */
 }
