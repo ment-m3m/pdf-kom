@@ -17,20 +17,45 @@
   // 初期状態：操作ボタンを無効化
   [rotateBtn, alignVertBtn, alignHorzBtn, mergeBtn].forEach(btn => btn.disabled = true);
 
-  // ファイル選択時の処理
-  fileInput.addEventListener('change', async (e) => {
-    const files = Array.from(e.target.files);
-    pdfDocs = [];
-    for (const file of files) {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdfDoc = await PDFDocument.load(arrayBuffer);
-      pdfDocs.push(pdfDoc);
-    }
-    // ファイル読み込み完了後、操作ボタンを有効化
-    [rotateBtn, alignVertBtn, alignHorzBtn, mergeBtn].forEach(btn => btn.disabled = false);
-    M.toast({ html: `${files.length} ファイル読み込み完了` });
-  });
+  // ファイル選択時の
+fileInput.addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files);
+  pdfDocs = [];
 
+  const previewArea = document.getElementById('pdf-preview-area');
+  previewArea.innerHTML = ''; // プレビュー領域を初期化
+
+  for (const file of files) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdfDoc = await PDFDocument.load(arrayBuffer);
+    pdfDocs.push(pdfDoc);
+
+    // PDF.jsで表示用の読み込み
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const loadedPdf = await loadingTask.promise;
+
+    for (let pageNum = 1; pageNum <= loadedPdf.numPages; pageNum++) {
+      const page = await loadedPdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 1.0 });
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      const renderContext = {
+        canvasContext: context,
+        viewport: viewport
+      };
+
+      await page.render(renderContext).promise;
+      previewArea.appendChild(canvas);
+    }
+  }
+
+  // ファイル読み込み完了後、操作ボタンを有効化
+  [rotateBtn, alignVertBtn, alignHorzBtn, mergeBtn].forEach(btn => btn.disabled = false);
+  M.toast({ html: `${files.length} ファイル読み込み完了` });
+});
   // 個別回転（90度ずつ）
   rotateBtn.addEventListener('click', () => {
     pdfDocs.forEach(pdfDoc => {
