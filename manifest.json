@@ -1,10 +1,10 @@
 {
-  "name": "pdf-kom",
-  "short_name": "pdf-kom",
+  "name": "PDF jem",
+  "short_name": "PDF jem",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#2196f3",
+  "theme_color": "#0a1d4d",
   "icons": [
     {
       "src": "/icons/icon-192.png",
