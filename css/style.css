@@ -42,7 +42,7 @@ body {
 
 /* メインコンテンツ */
 main.container {
-  padding-top: 2rem;
+  padding-top: 4rem;
   padding-bottom: 2rem;
 }
 
@@ -78,10 +78,10 @@ a#download-link.disabled {
 /* レスポンシブ */
 @media only screen and (max-width: 600px) {
   .brand-logo {
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
   .btn {
-    font-size: 0.9rem;
+    font-size: 0.6rem;
     padding: 0 1rem;
   }
 }
@@ -252,11 +252,11 @@ a#download-link.disabled {
 
 
 .add-pdf-wide {
-  font-weight: bold;
+  font-weight: none;
 }
 
 .wide-plus {
-  font-weight: bold;
+  font-weight: none;
 }
 .top-controls {
   display: flex;
@@ -290,6 +290,7 @@ a#download-link.disabled {
 .card-content {
   padding:5px !important; /* 標準の24pxからかなり小さく */
   min-height: 20px;
+	
 }
 
 .page-number {
@@ -362,7 +363,7 @@ a#download-link.disabled {
   top: 1px !important;
   width: 20px !important;
   height: 20px !important;
-  border-width: 1px !important;
+  border-width:1px !important;
   border-color: #0a1d4d !important;
 }
 

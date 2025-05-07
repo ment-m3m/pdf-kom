@@ -1,4 +1,30 @@
 // js/main.js
+// main.js の冒頭などで要素を取得
+const fileInput       = document.getElementById('file-input');
+const openPdfLabel    = document.querySelector('label[for="file-input"]');
+
+// 同じファイル選択でも必ず change を発火させる
+fileInput.addEventListener('click', () => {
+  fileInput.value = null;
+});
+
+// 既存の change リスナーをラップして無効化／有効化を実装
+fileInput.addEventListener('change', async (e) => {
+  // ────────────── ここから追加 ──────────────
+  openPdfLabel.classList.add('disabled');
+  // ────────────── ここまで追加 ──────────────
+
+  try {
+    // ────────────── 既存の読み込み処理 ──────────────
+    await loadAndPreviewPDF(e.target.files);
+    // ───────────────────────────────────────────────
+
+  } finally {
+    // ────────────── ここから追加 ──────────────
+    openPdfLabel.classList.remove('disabled');
+    // ────────────── ここまで追加 ──────────────
+  }
+});
 
 (async () => {
   // PDF-LIBから必要な要素を取得
@@ -281,38 +307,6 @@ addFileInput.addEventListener('change', async (e) => {
 });
 
 // 同様に、元のファイル選択コード（fileInput）も修正
-fileInput.addEventListener('change', async (e) => {
-  globalPageCount = 0;
-  totalPages = 0;
-  const files = Array.from(e.target.files);
-  pdfDocs = [];
-
-  // プレビュー領域クリア
-  const previewArea = document.getElementById('pdf-preview-area');
-  previewArea.innerHTML = '';
-
-  // PDF読み込み＆プレビュー
-  globalPdfIndex = 0;
-  for (const file of files) {
-    // 既存のコード...（変更なし）
-  }
-  
-  // ファイル読み込み完了後にページ番号を再計算
-  updatePageNumbers();
-    
-  // 操作ボタン有効化
-  [rotateBtn, alignVertBtn, alignHorzBtn].forEach(btn => btn.disabled = false);
-  downloadLink.classList.remove('disabled');
-  
-  if (typeof M !== 'undefined' && M.toast) {
-    M.toast({ html: `${files.length} file loaded` });
-  } else {
-    console.log(`${files.length} file loaded`);
-  }
-
-  // 即マージしてダウンロードリンクを有効化
-  fileInput.value = '';
-});
 
 
 
