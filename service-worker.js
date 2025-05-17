@@ -1,17 +1,17 @@
 const CACHE_NAME = 'my-pwa-cache-v1';
 const FILES_TO_CACHE = [
   '/',
-  '/index.html',
-  '/manifest.json',
-  '/css/style.css',
-  '/js/main.js',
-  '/libs/materialize.min.css',
-  '/libs/materialize.min.js',
-  '/libs/pdf-lib.min.js',
-  '/pdfjs/pdf.js',
-  '/pdfjs/pdf.worker.min.js',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  './index.html',
+  './manifest.json',
+  './css/style.css',
+  './js/main.js',
+  './libs/materialize.min.css',
+  './libs/materialize.min.js',
+  './libs/pdf-lib.min.js',
+  './pdfjs/pdf.js',
+  './pdfjs/pdf.worker.min.js',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
 // インストール時にアプリシェルをキャッシュに保存

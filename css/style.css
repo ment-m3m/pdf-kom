@@ -94,16 +94,23 @@ a#download-link.disabled {
 }
 
 #pdf-preview-area canvas {
-  border: 1px solid #ccc;
+	width: 100%;
   width: auto;
   height: auto;
-  max-width: 150px; /* 最大幅 */
+  display: block;
+  max-width: 100%;
+  
+  border: 1px solid #ccc;
+  height: auto;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 	transition: transform 0.3s;
 }
 
+/* ページ間の余白を狭くする */
 .thumbnail-wrapper {
-  position: relative;
+  margin-bottom: 5px !important;
+  padding: 2px !important;
+ 	position: relative;
   display: inline-block;
 }
 
@@ -113,6 +120,7 @@ a#download-link.disabled {
 .thumbnail-wrapper .card-image {
   position: relative;
   padding: 0;
+
 }
 
 .thumbnail-wrapper canvas {
@@ -121,6 +129,9 @@ a#download-link.disabled {
   height: auto;
   transition: transform 0.3s;
 }
+
+
+
 
 /* 丸みを帯びたボタン共通 */
 .round-btn {
@@ -150,15 +161,6 @@ a#download-link.disabled {
   padding: 0 1.5rem;       /* 横幅調整 */
 }
 
-
-
-/* 画面下部右下：add pdf */
-.bottom-addpdf-btn {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  z-index: 1000;
-}
 
 /* 画面下部右下の上：＋ボタン */
 .bottom-plus-btn {
@@ -202,9 +204,37 @@ a#download-link.disabled {
 /* 3.「add pdf」「＋」ボタンの色 */
 .bottom-addpdf-btn,
 .bottom-plus-btn {
-  background-color: #ffe600 !important; /* 黄 */
-  color: #0a1d4d     !important;        /* 紺文字 */
+  align-items: center;
+	 border: none !important;
+  background-color: rgba(255, 230, 0, 0.7) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+  color: #0a1d4d !important;
+  display: flex;
+  font-size: 1rem;
+  font-weight: none;
+  height: 45px     !important;
+  justify-content: center;
+  min-width: 100px !important;   /* ←ここで横幅を調整 */
+  text-align: center;
+  padding: 0 !important;
+	z-index: 20000;
+
+
 }
+
+/* 画面下部右下：add pdf */
+.bottom-addpdf-btn {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+}
+
+
+
+
+
 
 /* 4. download ボタンの色＆丸み */
 .nav-download-btn {
@@ -226,18 +256,6 @@ a#download-link.disabled {
   padding: 0 !important;  
 }
 
-/* add pdf ボタン専用：横幅を広めに */
-.add-pdf-wide {
-  min-width: 100px !important;   /* ←ここで横幅を調整 */
-  height: 45px     !important;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 0 !important;
-	z-index: 20000;
-}
 
 /* ロゴを白文字に */
 .nav-wrapper .brand-logo {
@@ -249,11 +267,6 @@ a#download-link.disabled {
   text-decoration: none !important;
 }
 
-
-
-.add-pdf-wide {
-  font-weight: none;
-}
 
 .wide-plus {
   font-weight: none;
@@ -299,11 +312,6 @@ a#download-link.disabled {
   line-height: 1;
 }
 
-/* ページ間の余白を狭くする */
-.thumbnail-wrapper {
-  margin-bottom: 5px !important;
-  padding: 2px !important;
-}
 
 .card {
   margin: 0.5rem 0 !important; /* 上下の余白を小さく */
@@ -413,7 +421,7 @@ body {
 .btn.nav-download-btn {
   background-color: rgba(255, 230, 0, 0.7) !important;  /* ← 透過黄色 */
   color: #0a1d4d !important;                           /* 紺文字 */
-  border: 2px solid rgba(133, 153, 6, 0.3) !important;  /* 枠もやや透過 */
+  border: 0px solid rgba(133, 153, 6, 0.3) !important;  /* 枠もやや透過 */
 	border-radius:   24px    !important;       /* 丸み */
   box-shadow:      0 4px 8px rgba(0,0,0,0.2) !important; /* 影 */
 }
@@ -488,3 +496,31 @@ body {
     border-width: 3px !important; /* モバイルではより太い枠線 */
   }
 }
+
+/* ファイル名＋ページ番号を常に下部に固定表示 */
+.thumbnail-wrapper {
+  position: relative; /* 子要素の絶対配置の基準 */
+  min-height: 200px;  /* サムネイルの高さを確保（必要に応じて調整） */
+}
+
+.card-content {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 10px;
+  padding: 4px 2px;
+  box-sizing: border-box;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.card-content .file-name,
+.card-content .page-number {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+

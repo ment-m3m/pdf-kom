@@ -111,8 +111,9 @@ fileInput.addEventListener('change', async (e) => {
         pageNumberDiv.className = 'page-number';
         pageNumberDiv.textContent = `${globalPageCount} / ${totalPages}`;
     
-        const cardContent = document.createElement('div');
+		    const cardContent = document.createElement('div');
         cardContent.className = 'card-content center-align';
+        cardContent.appendChild(fileNameDiv); // ファイル名追加
         cardContent.appendChild(pageNumberDiv);
     
         wrapper.appendChild(cardImage);
@@ -287,9 +288,18 @@ fileInput.addEventListener('change', async (e) => {
         // 一時的なページ番号を設定（後で updatePageNumbers で更新される）
         pageNumberDiv.textContent = `${globalPageCount} / ${totalPages}`;
     
-        const cardContent = document.createElement('div');
-        cardContent.className = 'card-content center-align';
-        cardContent.appendChild(pageNumberDiv);
+				const fileNameDiv = document.createElement('div');
+				fileNameDiv.className = 'file-name';
+				fileNameDiv.textContent = `${file.name.substring(0, 15)}${file.name.length > 15 ? '...' : ''}`;
+				fileNameDiv.style.fontSize = '10px';
+				fileNameDiv.style.overflow = 'hidden';
+				fileNameDiv.style.textOverflow = 'ellipsis';
+
+				const cardContent = document.createElement('div');
+				cardContent.className = 'card-content center-align';
+				cardContent.appendChild(fileNameDiv);  // ← ファイル名を追加
+				cardContent.appendChild(pageNumberDiv);
+
     
         wrapper.appendChild(cardImage);
         wrapper.appendChild(cardContent);
@@ -872,7 +882,7 @@ fileInput.addEventListener('change', async (e) => {
 
 // ユーティリティ関数や非同期PDFロード処理
 async function loadAndPreviewPDF(files) {
-  // この関数は別途定義されている（元のコードにない場合は実装が必要）
   console.log('PDFファイルを読み込みます...');
-  // 実装はここに
+  // ...元の処理...
+  setTimeout(initDragDrop, 500); // 追加（500ms程度でOK）
 }
