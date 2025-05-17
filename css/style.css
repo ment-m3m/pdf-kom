@@ -1,4 +1,4 @@
-/* css/style.css - 完全書き換え版 */
+/* css/style.css */
 /* Materialize CSS をベースにし、上書き用のカスタムスタイルです */
 
 /* カラースキーム */
@@ -93,17 +93,17 @@ a#download-link.disabled {
   justify-content: start;
 }
 
-/* すべてのcanvasに対するクリック無効化 - 重要 */
 #pdf-preview-area canvas {
-  pointer-events: none !important; 
+  width: 100%;
   width: auto;
   height: auto;
   display: block;
   max-width: 100%;
+  
   border: 1px solid #ccc;
+  height: auto;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   transition: transform 0.3s;
-  user-select: none;
 }
 
 /* ページ間の余白を狭くする */
@@ -112,26 +112,23 @@ a#download-link.disabled {
   padding: 2px !important;
   position: relative;
   display: inline-block;
-  /* サムネイル全体のポインターイベントを制御 */
-  pointer-events: none !important;
+  cursor: pointer; /* カーソルをポインターに変更して選択可能であることを示す */
 }
 
-/* サムネイル内のカード画像 */
 .thumbnail-wrapper .card-image {
   position: relative;
   padding: 0;
-  /* カード画像のポインターイベントも無効化 */
-  pointer-events: none !important;
 }
 
 .thumbnail-wrapper canvas {
   display: block;
-  max-width: 100%;
+  width: 100% ;
   height: auto;
   transition: transform 0.3s;
 }
 
-/* タッチ操作関連の設定 */
+/* style.css の末尾に追加 */
+
 .thumbnail-wrapper,
 .thumbnail-wrapper * {
   /* テキスト選択禁止 */
@@ -143,16 +140,6 @@ a#download-link.disabled {
   -webkit-touch-callout: none;
   /* タッチ操作の設定を変更 */
   touch-action: auto; /* または manipulation */
-}
-
-/* チェックボックス関連の要素だけポインターイベントを有効化 - 最重要 */
-.checkbox-label,
-.page-checkbox,
-.checkbox-label span {
-  pointer-events: auto !important;
-  z-index: 50 !important; /* 最前面に */
-  position: relative;
-  cursor: pointer;
 }
 
 /* 丸みを帯びたボタン共通 */
@@ -257,6 +244,7 @@ a#download-link.disabled {
   border-radius: 24px !important;       /* portrait と同じ丸み */
 }
 
+
 /* wide-plus: ＋ボタンを横に広くする */
 .wide-plus {
   min-width: 2.5em !important;
@@ -269,6 +257,7 @@ a#download-link.disabled {
   padding: 0 !important;  
 }
 
+
 /* ロゴを白文字に */
 .nav-wrapper .brand-logo {
   color: white !important;
@@ -278,6 +267,7 @@ a#download-link.disabled {
   color: white !important;
   text-decoration: none !important;
 }
+
 
 .wide-plus {
   font-weight: none;
@@ -311,8 +301,6 @@ a#download-link.disabled {
 .card-content {
   padding: 5px !important; /* 標準の24pxからかなり小さく */
   min-height: 20px;
-  /* ページ情報エリアの操作も無効化 */
-  pointer-events: none !important;
 }
 
 .page-number {
@@ -320,6 +308,7 @@ a#download-link.disabled {
   margin: 0;
   line-height: 1;
 }
+
 
 .card {
   margin: 0.5rem 0 !important; /* 上下の余白を小さく */
@@ -333,63 +322,6 @@ a#download-link.disabled {
 .card-image {
   touch-action: none; /* ドラッグハンドル部分だけドラッグ専用に */
   padding: 22px !important;
-  /* ドラッグ操作だけを許可 */
-  pointer-events: auto !important;
-  cursor: grab;
-}
-
-/* チェックボックス関連の設定 - 最重要 */
-.checkbox-label span {
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  padding-left: 0 !important;  /* ← これがずれの根本原因！ */
-  line-height: 24px;
-  margin: 0;
-}
-
-/* チェックボックス全体を拡大 */
-.checkbox-label {
-  transform: scale(1.8); /* ← さらに大きく */
-  transform-origin: top left;
-  position: absolute !important;
-  top: 1px;
-  left: 5px;
-  z-index: 100 !important; /* 最前面に配置（優先度最高） */
-  pointer-events: auto !important;
-  cursor: pointer;
-}
-
-/* チェックボックスそのもの */
-.page-checkbox {
-  width: 32px;
-  height: 32px;
-  margin: 0;
-  padding: 0;
-  z-index: 100 !important;
-  cursor: pointer !important; /* マウスカーソルをポインターに */
-  pointer-events: auto !important;
-}
-
-/* チェックボックス塗りつぶしエリア */
-.page-checkbox[type="checkbox"] + span {
-  height: 2px;
-  width: 2px;
-  padding-left: 0 !important;
-  margin: 0 !important;
-  position: relative;
-  display: inline-block;
-  pointer-events: auto !important;
-}
-
-/* ✔マークの描画位置のみ調整（content指定は削除！） */
-.page-checkbox[type="checkbox"]:checked + span:after {
-  left: 1px !important;
-  top: 1px !important;
-  width: 20px !important;
-  height: 20px !important;
-  border-width: 1px !important;
-  border-color: #0a1d4d !important;
 }
 
 /* 上部操作ボタンを固定表示に */
@@ -438,8 +370,8 @@ body {
   background-color: rgba(255, 230, 0, 0.7) !important;  /* ← 透過黄色 */
   color: #0a1d4d !important;                           /* 紺文字 */
   border: 0px solid rgba(133, 153, 6, 0.3) !important;  /* 枠もやや透過 */
-  border-radius: 24px !important;       /* 丸み */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important; /* 影 */
+  border-radius:   24px    !important;       /* 丸み */
+  box-shadow:      0 4px 8px rgba(0,0,0,0.2) !important; /* 影 */
 }
 
 /* ドラッグ可能な要素 */
@@ -480,7 +412,7 @@ body {
 }
 
 /* サムネイルホバー時の視覚効果（移動可能なことを示す） */
-.thumbnail-wrapper:hover .card-image {
+.thumbnail-wrapper:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transform: translateY(-2px);
   transition: all 0.2s ease;
@@ -508,17 +440,13 @@ body {
     touch-action: pan-y; /* 縦方向のスクロールを許可 */
     width: 40% !important;
   }
-  /* canvas 自身を幅いっぱいに */
+    /* canvas 自身を幅いっぱいに */
   .thumbnail-wrapper canvas {
     width: 100% !important;
     height: auto !important;
   }
   .drag-over {
     border-width: 3px !important; /* モバイルではより太い枠線 */
-  }
-  /* モバイルではチェックボックスをさらに大きく */
-  .checkbox-label {
-    transform: scale(2.0);
   }
 }
 
@@ -550,11 +478,9 @@ body {
 
 /* Sortableのスタイル */
 .thumbnail-wrapper.selected {
-  background-color: rgba(10, 29, 77, 0.2) !important;
-  outline: 3px solid #0a1d4d !important;
+  background-color: rgba(10, 29, 77, 0.1);
+  outline: 2px solid #0a1d4d;
   z-index: 10;
-  opacity: 0.7 !important; /* 選択状態をより明確に */
-  transition: all 0.2s ease;
 }
 
 .sortable-ghost {
@@ -568,31 +494,10 @@ body {
   z-index: 1000;
 }
 
-/* タイトルとヘッダーのスタイル調整 */
-.header-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: white;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); /* テキストに影を追加 */
-}
-
-/* ボタン操作の視覚フィードバック */
-.btn:active {
-  transform: scale(0.95);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-  transition: all 0.1s ease;
-}
-
-/* チェックボックスをより操作しやすく */
-[type="checkbox"].page-checkbox + span:before,
-[type="checkbox"].page-checkbox + span:after {
-  width: 20px;
-  height: 20px;
-  margin-top: -3px;
-}
-
-/* チェックボックスラベルをサムネイル左上に配置 */
-.checkbox-label {
-  left: 8px;
-  top: 3px;
+/* style.css の末尾などに追加 */
+.header-icon {
+  width: 70px;
+  height: 70px;
+  margin-right: 8px;  /* アイコンとタイトルの間にスペース */
+  /* flexbox の align-items: center; によって自動で上下中央揃えになります */
 }
