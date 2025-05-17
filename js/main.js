@@ -880,9 +880,70 @@ fileInput.addEventListener('change', async (e) => {
 
 })(); // ここでメイン処理の即時実行関数を終了
 
+// ===== Service Workerの更新チェックと通知 =====
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(reg => {
+      reg.onupdatefound = () => {
+        const newWorker = reg.installing;
+        newWorker.onstatechange = () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateMessage(); // ← 通知表示の関数
+          }
+        };
+      };
+    });
+}
+
+// 更新通知を表示する関数（下にHTML要素を用意しておく）
+function showUpdateMessage() {
+  const msgBox = document.getElementById('update-message');
+  if (msgBox) msgBox.style.display = 'block';
+}
+
 // ユーティリティ関数や非同期PDFロード処理
 async function loadAndPreviewPDF(files) {
   console.log('PDFファイルを読み込みます...');
   // ...元の処理...
   setTimeout(initDragDrop, 500); // 追加（500ms程度でOK）
 }
+
+(() => {
+  const previewArea = document.getElementById('pdf-preview-area');
+  let isSelecting = false;
+
+  // モード切替用フラグ（PC: shiftKey, モバイル: long-press などの条件で制御）
+  function canSelect(e) {
+    return e.shiftKey || e.pointerType === 'touch'; 
+  }
+
+  previewArea.addEventListener('pointerdown', e => {
+    if (!canSelect(e)) return;
+    e.preventDefault();
+    isSelecting = true;
+    const thumb = e.target.closest('.thumbnail-wrapper');
+    if (thumb) thumb.querySelector('.page-checkbox').checked = true;
+  });
+
+  previewArea.addEventListener('pointermove', e => {
+    if (!isSelecting) return;
+    e.preventDefault();
+    const elem = document.elementFromPoint(e.clientX, e.clientY)
+                  ?.closest('.thumbnail-wrapper');
+    if (elem) elem.querySelector('.page-checkbox').checked = true;
+  });
+
+  document.addEventListener('pointerup', () => {
+    isSelecting = false;
+  });
+
+  // モバイルで長押しを検出して canSelect を true にする例
+  let longPressTimer;
+  previewArea.addEventListener('touchstart', e => {
+    longPressTimer = setTimeout(() => { isSelecting = true; }, 500);
+  });
+  previewArea.addEventListener('touchend', () => {
+    clearTimeout(longPressTimer);
+    isSelecting = false;
+  });
+})();
