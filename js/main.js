@@ -908,3 +908,34 @@ async function loadAndPreviewPDF(files) {
   setTimeout(initDragDrop, 500); // 追加（500ms程度でOK）
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+  // ここに Service Worker 更新検知＋バナー表示のコードを入れる
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+      .register('/service-worker.js')
+      .then(reg => {
+        reg.onupdatefound = () => {
+          const newWorker = reg.installing;
+          newWorker.onstatechange = () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showPwaUpdateBanner();
+            }
+          };
+        };
+      });
+  }
+
+  function showPwaUpdateBanner() {
+    const banner = document.createElement('div');
+    banner.id = 'pwa-update';
+    banner.innerHTML = `
+      <div style="
+        position:fixed; bottom:0; left:0; right:0;
+        background:#333; color:#fff; text-align:center;
+        padding:12px; font-size:16px;
+      ">
+        新しいバージョンがあります。アプリを一度閉じて再度起動してください。
+      </div>`;
+    document.body.appendChild(banner);
+  }
+});
