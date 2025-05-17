@@ -96,9 +96,6 @@ function setupButtons() {
       // チェックボックスで選択されたページを回転
       const selectedItems = document.querySelectorAll('.thumbnail-wrapper.selected');
       if (selectedItems.length === 0) {
-        if (typeof M !== 'undefined' && M.toast) {
-          M.toast({ html: 'Please select pages to rotate' });
-        }
         return;
       }
       
@@ -111,10 +108,6 @@ function setupButtons() {
           canvas.style.transform = `rotate(${rotate}deg)`;
         }
       });
-      
-      if (typeof M !== 'undefined' && M.toast) {
-        M.toast({ html: `Rotated ${selectedItems.length} pages` });
-      }
     });
   }
   
@@ -139,10 +132,6 @@ function setupButtons() {
           canvas.style.transform = 'rotate(0deg)';
         }
       });
-      
-      if (typeof M !== 'undefined' && M.toast) {
-        M.toast({ html: `${targetItems.length} pages aligned vertically` });
-      }
     });
   }
   
@@ -167,10 +156,6 @@ function setupButtons() {
           canvas.style.transform = 'rotate(0deg)';
         }
       });
-      
-      if (typeof M !== 'undefined' && M.toast) {
-        M.toast({ html: `${targetItems.length} pages aligned horizontally` });
-      }
     });
   }
   
@@ -181,19 +166,10 @@ function setupButtons() {
       
       const selectedItems = document.querySelectorAll('.thumbnail-wrapper.selected');
       if (selectedItems.length === 0) {
-        if (typeof M !== 'undefined' && M.toast) {
-          M.toast({ html: 'Please select pages to delete' });
-        }
         return;
       }
       
-      // 確認ダイアログ（オプション）
-      if (selectedItems.length > 1) {
-        if (!confirm(`${selectedItems.length} ページを削除しますか？`)) {
-          return;
-        }
-      }
-      
+      // 確認ダイアログなしで即時削除
       selectedItems.forEach(wrapper => wrapper.remove());
       
       // ページ番号の更新
@@ -201,10 +177,6 @@ function setupButtons() {
       
       // 選択カウンターの更新
       updateSelectionCounter();
-      
-      if (typeof M !== 'undefined' && M.toast) {
-        M.toast({ html: `${selectedItems.length} pages deleted` });
-      }
     });
   }
   
@@ -361,9 +333,6 @@ async function processPdfFiles(files, isAddition = false) {
       
     } catch (error) {
       console.error(`ファイル処理エラー:`, error);
-      if (typeof M !== 'undefined' && M.toast) {
-        M.toast({ html: `Error processing file: ${file.name}` });
-      }
     }
   }
   
@@ -375,13 +344,6 @@ async function processPdfFiles(files, isAddition = false) {
   
   // ボタンを有効化
   enableControls();
-  
-  // 完了メッセージ
-  if (isAddition) {
-    if (typeof M !== 'undefined' && M.toast) {
-      M.toast({ html: `${files.length} file(s) added` });
-    }
-  }
 }
 
 // サムネイルクリックの処理
@@ -446,6 +408,12 @@ function updatePageNumbers() {
   globalPageCount = count;
 }
 
+// 選択カウンターの更新
+function updateSelectionCounter() {
+  const selectedCount = document.querySelectorAll('.thumbnail-wrapper.selected').length;
+  console.log(`選択カウンター更新: ${selectedCount}件`);
+}
+
 // ドラッグ＆ドロップの有効化
 function enableDragDrop() {
   const previewArea = document.getElementById('pdf-preview-area');
@@ -467,21 +435,38 @@ function enableDragDrop() {
         animation: 150,
         draggable: '.thumbnail-wrapper',
         handle: '.card-image',
+        // ドラッグできる要素を選択されたものだけに制限
+        filter: '.thumbnail-wrapper:not(.selected)',
+        preventOnFilter: true,
+        
         // ドラッグ開始時
         onStart: function(evt) {
-          // ドラッグ中は選択解除を防止（ドラッグ操作が選択操作と競合するため）
+          // 選択されていない要素のドラッグを防止
+          if (!evt.item.classList.contains('selected')) {
+            evt.cancel();
+            return;
+          }
+          
+          // ドラッグ中は選択解除を防止
           evt.item.setAttribute('data-dragging', 'true');
           
-          // チェックボックスが選択されているアイテムだけに視覚効果を適用
-          if (evt.item.classList.contains('selected')) {
-            const selectedItems = document.querySelectorAll('.thumbnail-wrapper.selected');
-            selectedItems.forEach(item => {
-              if (item !== evt.item) {
-                item.classList.add('drag-related');
-              }
-            });
-          }
+          // 他の選択アイテムに視覚効果を適用
+          document.querySelectorAll('.thumbnail-wrapper.selected').forEach(item => {
+            if (item !== evt.item) {
+              item.classList.add('drag-related');
+            }
+          });
         },
+        
+        // ドラッグ中
+        onMove: function(evt) {
+          // 選択されていない要素へのドラッグ中は視覚的にフィードバック
+          if (!evt.dragged.classList.contains('selected')) {
+            return false; // ドラッグをキャンセル
+          }
+          return true;
+        },
+        
         // ドラッグ終了時
         onEnd: function(evt) {
           // フラグを解除
@@ -542,10 +527,6 @@ function enableDragDrop() {
           
           // ページ番号を更新
           updatePageNumbers();
-          
-          if (typeof M !== 'undefined' && M.toast) {
-            M.toast({ html: 'Order updated' });
-          }
         }
       });
       
@@ -573,105 +554,6 @@ function enableControls() {
   if (downloadLink) downloadLink.classList.remove('disabled');
 }
 
-// 選択ページの回転
-function rotateSelectedPages(e) {
-  if (e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-  
-  const selectedItems = document.querySelectorAll('.thumbnail-wrapper.selected');
-  if (selectedItems.length === 0) {
-    if (typeof M !== 'undefined' && M.toast) {
-      M.toast({ html: 'Please select pages to rotate' });
-    }
-    return;
-  }
-  
-  selectedItems.forEach(wrapper => {
-    const canvas = wrapper.querySelector('canvas');
-    if (canvas) {
-      let rotate = parseInt(canvas.getAttribute('data-rotate') || '0');
-      rotate = (rotate + 90) % 360;
-      canvas.setAttribute('data-rotate', rotate.toString());
-      canvas.style.transform = `rotate(${rotate}deg)`;
-    }
-  });
-  
-  if (typeof M !== 'undefined' && M.toast) {
-    M.toast({ html: `Rotated ${selectedItems.length} pages` });
-  }
-}
-
-// 全ページを縦向きに
-function alignPagesVertical(e) {
-  if (e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-  
-  document.querySelectorAll('#pdf-preview-area canvas').forEach(canvas => {
-    if (canvas.width > canvas.height) {
-      canvas.setAttribute('data-rotate', '90');
-      canvas.style.transform = 'rotate(90deg)';
-    } else {
-      canvas.setAttribute('data-rotate', '0');
-      canvas.style.transform = 'rotate(0deg)';
-    }
-  });
-  
-  if (typeof M !== 'undefined' && M.toast) {
-    M.toast({ html: 'All pages aligned vertically' });
-  }
-}
-
-// 全ページを横向きに
-function alignPagesHorizontal(e) {
-  if (e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-  
-  document.querySelectorAll('#pdf-preview-area canvas').forEach(canvas => {
-    if (canvas.height > canvas.width) {
-      canvas.setAttribute('data-rotate', '90');
-      canvas.style.transform = 'rotate(90deg)';
-    } else {
-      canvas.setAttribute('data-rotate', '0');
-      canvas.style.transform = 'rotate(0deg)';
-    }
-  });
-  
-  if (typeof M !== 'undefined' && M.toast) {
-    M.toast({ html: 'All pages aligned horizontally' });
-  }
-}
-
-// 選択ページの削除
-function deleteSelectedPages(e) {
-  if (e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-  
-  const selectedItems = document.querySelectorAll('.thumbnail-wrapper.selected');
-  if (selectedItems.length === 0) {
-    if (typeof M !== 'undefined' && M.toast) {
-      M.toast({ html: 'Please select pages to delete' });
-    }
-    return;
-  }
-  
-  selectedItems.forEach(wrapper => wrapper.remove());
-  
-  // ページ番号の更新
-  updatePageNumbers();
-  
-  if (typeof M !== 'undefined' && M.toast) {
-    M.toast({ html: `${selectedItems.length} pages deleted` });
-  }
-}
-
 // PDFのマージとダウンロード
 async function downloadMergedPdf() {
   try {
@@ -683,28 +565,12 @@ async function downloadMergedPdf() {
       return;
     }
     
-    // 選択されたページのみを対象にするオプション
-    const selectedItems = document.querySelectorAll('.thumbnail-wrapper.selected');
-    let targetCanvases = canvases;
-    
-    // 選択があれば選択されたページのみを対象に
-    if (selectedItems.length > 0) {
-      targetCanvases = Array.from(selectedItems).map(item => item.querySelector('canvas')).filter(canvas => canvas);
-      
-      // ユーザーに確認（オプション）
-      if (targetCanvases.length !== canvases.length) {
-        if (confirm(`選択された ${targetCanvases.length} ページのみをダウンロードしますか？\n「キャンセル」を押すと全 ${canvases.length} ページがダウンロードされます。`)) {
-          console.log(`選択された ${targetCanvases.length} ページのみをダウンロード`);
-        } else {
-          targetCanvases = canvases;
-          console.log(`全 ${canvases.length} ページをダウンロード`);
-        }
-      }
-    }
+    // 常に全ページをダウンロード（選択されているかどうかに関わらず）
+    const targetCanvases = canvases;
     
     let processedPages = 0;
     
-    // プログレスバーの作成（オプション）
+    // プログレスバーの作成
     const progressContainer = document.createElement('div');
     progressContainer.style.position = 'fixed';
     progressContainer.style.top = '50%';
@@ -785,26 +651,62 @@ async function downloadMergedPdf() {
       return;
     }
     
+    // PDFをBlobに変換
     const mergedBytes = await mergedPdf.save();
     const blob = new Blob([mergedBytes], { type: 'application/pdf' });
     
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'merged.pdf';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // 安全なダウンロード方法：Data URLを使用
+    // この方法ではブラウザの「安全ではないダウンロード」警告を回避できる場合がある
+    const reader = new FileReader();
+    reader.onload = function() {
+      // Data URL形式でリンクを作成
+      const dataUrl = reader.result;
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = 'merged.pdf';
+      link.target = '_blank'; // 新しいタブで開く
+      
+      // リンクを表示して自動的にクリック
+      document.body.appendChild(link);
+      
+      // iOS Safariでは直接クリックが必要な場合がある
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+        // iOSの場合はリンクを表示
+        link.style.position = 'fixed';
+        link.style.top = '50%';
+        link.style.left = '50%';
+        link.style.transform = 'translate(-50%, -50%)';
+        link.style.padding = '20px';
+        link.style.backgroundColor = '#2196F3';
+        link.style.color = 'white';
+        link.style.borderRadius = '10px';
+        link.style.textDecoration = 'none';
+        link.style.zIndex = '2000';
+        link.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.3)';
+        link.textContent = 'ここをタップしてPDFをダウンロード';
+        
+        // プログレスバーを削除
+        document.body.removeChild(progressContainer);
+        
+        // 10秒後に非表示
+        setTimeout(() => {
+          if (link.parentNode) {
+            link.parentNode.removeChild(link);
+          }
+        }, 10000);
+      } else {
+        // 他の環境では自動クリック
+        link.click();
+        document.body.removeChild(link);
+        
+        // プログレスバーを削除
+        document.body.removeChild(progressContainer);
+      }
+    };
     
-    // プログレスバーを削除
-    document.body.removeChild(progressContainer);
+    // Blobをデータ URL に変換
+    reader.readAsDataURL(blob);
     
-    if (typeof M !== 'undefined' && M.toast) {
-      M.toast({ html: `Downloaded ${processedPages} pages` });
-    } else {
-      alert('ダウンロード完了');
-    }
   } catch (error) {
     console.error('マージ処理エラー:', error);
     

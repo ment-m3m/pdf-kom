@@ -13,7 +13,7 @@
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
-  font-family:'Segoe UI', sans-serif, 'Noto Sans JP', sans-serif;
+  font-family:'Segoe UI', sans-serif, 'Noto Sans JP';
   margin: 0;
   padding: 0;
 }
