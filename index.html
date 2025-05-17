@@ -87,6 +87,27 @@
 				 <div class="row" id="pdf-preview-area"></div>
 
   </main>
+<!-- index.html の </body> 前に追加 -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/plugins/multi-drag/SortableMultiDrag.min.js"></script>
+<script>
+  // プレビューエリアを Sortable で初期化
+  const previewArea = document.getElementById('pdf-preview-area');
+  Sortable.mount(new Sortable.MultiDrag(), new Sortable.SortablePlugin());
+
+  Sortable.create(previewArea, {
+    draggable: '.thumbnail-wrapper',
+    multiDrag: true,           // 複数選択を有効化
+    selectedClass: 'being-dragged', // 選択時のクラス
+    fallbackOnBody: true,      // ドラッグ中の要素を body に移す
+    swapThreshold: 0.65,
+    onEnd: () => {
+      updateIndices();         // 既存のページ番号再計算関数
+      updatePageNumbers();
+      if (typeof M !== 'undefined') M.toast({ html: '順番を変更しました' });
+    }
+  });
+</script>
 
   <!-- Libraries -->
   <script src="./libs/pdf-lib.min.js"></script>

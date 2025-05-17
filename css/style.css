@@ -130,6 +130,20 @@ a#download-link.disabled {
   transition: transform 0.3s;
 }
 
+/* style.css の末尾に追加 */
+
+.thumbnail-wrapper,
+.thumbnail-wrapper * {
+  /* テキスト選択禁止 */
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  /* iOSの長押しメニューを抑制 */
+  -webkit-touch-callout: none;
+  /* タッチ操作の既定動作を抑制（要検証） */
+  touch-action: none;
+}
 
 
 
