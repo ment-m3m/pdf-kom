@@ -417,3 +417,74 @@ body {
 	border-radius:   24px    !important;       /* 丸み */
   box-shadow:      0 4px 8px rgba(0,0,0,0.2) !important; /* 影 */
 }
+
+/* ドラッグ可能な要素 */
+.draggable {
+  cursor: grab;
+}
+
+/* ドラッグ中の要素 */
+.dragging {
+  opacity: 0.6;
+  cursor: grabbing;
+  z-index: 1000;
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* ドラッグオーバー状態の要素 */
+.drag-over {
+  border: 2px dashed #0a1d4d !important;
+  background-color: rgba(10, 29, 77, 0.05);
+}
+
+/* 長押し状態の視覚フィードバック */
+.long-press {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* サムネイルホバー時の視覚効果（移動可能なことを示す） */
+.thumbnail-wrapper:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+}
+
+/* ドラッグ中のヒント表示 */
+.pdf-preview-area-dragging::after {
+  content: "ドロップして順序変更";
+  position: fixed;
+  bottom: 8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(10, 29, 77, 0.8);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* モバイル向けのタッチ操作に最適化 */
+@media (max-width: 768px) {
+  .thumbnail-wrapper {
+    touch-action: pan-y; /* 縦方向のスクロールを許可 */
+  }
+  
+  .drag-over {
+    border-width: 3px !important; /* モバイルではより太い枠線 */
+  }
+}
