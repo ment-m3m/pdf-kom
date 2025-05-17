@@ -3,6 +3,33 @@
 const fileInput       = document.getElementById('file-input');
 const openPdfLabel    = document.querySelector('label[for="file-input"]');
 
+// グローバル関数としてページ番号更新関数を定義
+window.updatePageNumbers = function() {
+  // 表示されているすべてのサムネイル（削除されていないもの）を取得
+  const thumbnails = document.querySelectorAll('.thumbnail-wrapper');
+  
+  // 総ページ数を計算（表示されているサムネイルの数）
+  const visibleCount = thumbnails.length;
+  
+  // 各サムネイルのページ番号を更新
+  let currentPageNumber = 1;
+  
+  thumbnails.forEach(wrapper => {
+    // ページ番号表示要素を取得
+    const pageNumberDiv = wrapper.querySelector('.page-number');
+    
+    // ページ番号を更新
+    if (pageNumberDiv) {
+      pageNumberDiv.textContent = `${currentPageNumber} / ${visibleCount}`;
+      currentPageNumber++;
+    }
+  });
+  
+  // グローバル変数も更新（必要に応じて）
+  if (typeof totalPages !== 'undefined') totalPages = visibleCount;
+  if (typeof globalPageCount !== 'undefined') globalPageCount = visibleCount;
+};
+
 // 同じファイル選択でも必ず change を発火させる
 fileInput.addEventListener('click', () => {
   fileInput.value = null;
@@ -428,455 +455,6 @@ fileInput.addEventListener('change', async (e) => {
     }
   });
 
-  // ここから修正したドラッグドロップ実装
-  (function() {
-    // ドラッグ中の要素を保持する変数
-    let draggedElements = []; // 複数要素対応のため配列に変更
-    let draggedPrimaryElement = null; // ドラッグの主要要素
-    let dragCounter = {}; // ドラッグ要素ごとのカウンターを管理するオブジェクト
-
-    // ページ読み込み後と新しいPDF追加後に実行する関数
-    function initDragDrop() {
-      console.log('改良版ドラッグドロップを初期化しています');
-      
-      // プレビューエリアを取得
-      const previewArea = document.getElementById('pdf-preview-area');
-      if (!previewArea) {
-        console.log('プレビューエリアが見つかりません');
-        return;
-      }
-      
-      // すべてのサムネイルを取得
-      const thumbnailWrappers = Array.from(previewArea.querySelectorAll('.thumbnail-wrapper'));
-      if (thumbnailWrappers.length === 0) {
-        console.log('サムネイルが見つかりません');
-        return;
-      }
-      
-      console.log(`${thumbnailWrappers.length}個のサムネイルを処理します`);
-      
-      // 念のためイベントリスナーを削除（重複登録防止）
-      thumbnailWrappers.forEach(wrapper => {
-        wrapper.removeEventListener('dragstart', handleDragStart);
-        wrapper.removeEventListener('dragover', handleDragOver);
-        wrapper.removeEventListener('dragenter', handleDragEnter);
-        wrapper.removeEventListener('dragleave', handleDragLeave);
-        wrapper.removeEventListener('drop', handleDrop);
-        wrapper.removeEventListener('dragend', handleDragEnd);
-      });
-      
-      // 各サムネイルにドラッグ属性とイベントを設定
-      thumbnailWrappers.forEach((wrapper, index) => {
-        // data-index属性を設定
-        wrapper.setAttribute('data-index', index.toString());
-        
-        // ドラッグ可能に設定
-        wrapper.setAttribute('draggable', 'true');
-        
-        // イベントリスナーを追加（関数を外部定義して参照）
-        wrapper.addEventListener('dragstart', handleDragStart);
-        wrapper.addEventListener('dragover', handleDragOver);
-        wrapper.addEventListener('dragenter', handleDragEnter);
-        wrapper.addEventListener('dragleave', handleDragLeave);
-        wrapper.addEventListener('drop', handleDrop);
-        wrapper.addEventListener('dragend', handleDragEnd);
-      });
-      
-      // スタイルを追加
-      addDragDropStyles();
-      
-      console.log('ドラッグドロップの設定が完了しました');
-    }
-    
-    // ドラッグ開始時の処理
-    function handleDragStart(e) {
-      e.stopPropagation();
-      
-      // ドラッグ要素をリセット
-      draggedElements = [];
-      draggedPrimaryElement = this;
-      
-      // チェックされているページを確認
-      const checkedPages = document.querySelectorAll('.page-checkbox:checked');
-      
-      // チェックされたページがある場合は、それらをドラッグ対象とする
-      if (checkedPages.length > 0) {
-        // チェックされているサムネイルをすべて取得
-        checkedPages.forEach(checkbox => {
-          const wrapper = checkbox.closest('.thumbnail-wrapper');
-          if (wrapper) {
-            draggedElements.push(wrapper);
-          }
-        });
-      } else {
-        // チェックされたページがない場合は、ドラッグ元のみを対象とする
-        draggedElements.push(this);
-      }
-      
-      // ドラッグ中の要素にスタイルを適用
-      draggedElements.forEach(element => {
-        element.classList.add('being-dragged');
-        element.style.opacity = '0.6';
-      });
-      
-      // データ転送を設定（主要な要素のインデックスを格納）
-      e.dataTransfer.effectAllowed = 'move';
-      
-      // ドラッグ要素のインデックスを文字列として結合
-      const indices = draggedElements.map(el => el.getAttribute('data-index')).join(',');
-      e.dataTransfer.setData('text/plain', indices);
-      
-      // ドラッグ時の表示画像を設定（透明画像）
-      if (draggedElements.length > 1) {
-        // 複数ページの場合、カスタムのドラッグ画像を作成
-        try {
-          const dragIcon = document.createElement('div');
-          dragIcon.textContent = `${draggedElements.length} pages`;
-          dragIcon.style.background = '#0a1d4d';
-          dragIcon.style.color = 'white';
-          dragIcon.style.padding = '5px 10px';
-          dragIcon.style.borderRadius = '3px';
-          dragIcon.style.position = 'absolute';
-          dragIcon.style.top = '-1000px';
-          document.body.appendChild(dragIcon);
-          
-          e.dataTransfer.setDragImage(dragIcon, 0, 0);
-          
-          // 一定時間後に削除
-          setTimeout(() => document.body.removeChild(dragIcon), 0);
-        } catch (err) {
-          console.error('ドラッグ画像設定エラー:', err);
-        }
-      }
-      
-      return true;
-    }
-    
-    // ドラッグオーバー時の処理
-    function handleDragOver(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      e.dataTransfer.dropEffect = 'move';
-      
-      // 明示的にfalseを返すことで、ドラッグオーバーイベントを処理したことを示す
-      return false;
-    }
-    
-    // ドラッグエンター時の処理（ドロップターゲットへの進入）
-    function handleDragEnter(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // ドラッグ元と異なる場合のみ視覚効果を適用
-      if (!draggedElements.includes(this)) {
-        // カウンターを初期化（存在しない場合）
-        if (!dragCounter[this.dataset.index]) {
-          dragCounter[this.dataset.index] = 0;
-        }
-        
-        // カウンターをインクリメント
-        dragCounter[this.dataset.index]++;
-        
-        // 最初の進入時のみクラスを追加
-        if (dragCounter[this.dataset.index] === 1) {
-          this.classList.add('drag-over');
-        }
-      }
-    }
-    
-    // ドラッグリーブ時の処理（ドロップターゲットからの離脱）
-    function handleDragLeave(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // ドラッグ元と異なる場合のみ処理
-      if (!draggedElements.includes(this)) {
-        // カウンターをデクリメント
-        dragCounter[this.dataset.index]--;
-        
-        // カウンターが0になった場合にのみクラスを削除
-        if (dragCounter[this.dataset.index] === 0) {
-          this.classList.remove('drag-over');
-        }
-      }
-    }
-    
-    // ドロップ時の処理
-    function handleDrop(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // 視覚効果をクリア
-      this.classList.remove('drag-over');
-      
-      // ドラッグ元がドロップ先に含まれていなければ処理
-      if (!draggedElements.includes(this)) {
-        try {
-          // ドラッグ元のインデックスを取得
-          const sourceIndicesStr = e.dataTransfer.getData('text/plain');
-          const sourceIndices = sourceIndicesStr.split(',').map(Number);
-          
-          // ドロップ先のインデックス
-          const targetIndex = parseInt(this.getAttribute('data-index'));
-          
-          // 移動するすべての要素を一旦取得して配列に格納
-          const previewArea = document.getElementById('pdf-preview-area');
-          const elementsToMove = [];
-          
-          // ソースインデックスに対応する要素を取得（降順でソート）
-          sourceIndices.sort((a, b) => a - b)
-            .forEach(index => {
-              const element = document.querySelector(`.thumbnail-wrapper[data-index="${index}"]`);
-              if (element) {
-                elementsToMove.push(element);
-              }
-            });
-          
-          // ドロップ先の要素を取得
-          const targetElement = document.querySelector(`.thumbnail-wrapper[data-index="${targetIndex}"]`);
-          
-          // 移動する要素がすべて取得できているか確認
-          if (elementsToMove.length === sourceIndices.length && targetElement) {
-            console.log(`${elementsToMove.length}ページを移動: 位置${targetIndex}へ`);
-            
-            // 移動元の平均インデックスを計算
-            const avgSourceIndex = sourceIndices.reduce((a, b) => a + b, 0) / sourceIndices.length;
-            
-            // 移動元が移動先より前か後ろかを判定
-            const movingForward = avgSourceIndex < targetIndex;
-            
-            // 複数要素を実際に移動する（古いインデックスは無視して新しい位置に直接挿入）
-            elementsToMove.forEach(element => {
-              // 一旦DOMから削除
-              if (element.parentNode) {
-                element.parentNode.removeChild(element);
-              }
-            });
-            
-            // 移動方向に基づいて要素を挿入
-            if (movingForward) {
-              // 要素を後方に移動するとき：ターゲットの次に挿入
-              const nextSibling = targetElement.nextSibling;
-              if (nextSibling) {
-                // 順番を維持するために逆順で挿入
-                for (let i = elementsToMove.length - 1; i >= 0; i--) {
-                  previewArea.insertBefore(elementsToMove[i], nextSibling);
-                }
-              } else {
-                // 末尾に追加
-                elementsToMove.forEach(element => {
-                  previewArea.appendChild(element);
-                });
-              }
-            } else {
-              // 要素を前方に移動するとき：ターゲットの前に挿入
-              elementsToMove.forEach(element => {
-                previewArea.insertBefore(element, targetElement);
-              });
-            }
-            
-            // インデックスとページ番号を更新
-            updateIndices();
-            updatePageNumbers();
-            
-            // 変更を通知
-            if (typeof M !== 'undefined' && M.toast) {
-              M.toast({ html: `${elementsToMove.length}ページの順序を変更しました` });
-            }
-          }
-        } catch (error) {
-          console.error('ドロップ処理エラー:', error);
-        }
-      }
-      
-      // ドラッグカウンターをリセット
-      dragCounter = {};
-      
-      return false;
-    }
-    
-    // ドラッグ終了時の処理
-    function handleDragEnd(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // 視覚効果をリセット
-      draggedElements.forEach(element => {
-        element.classList.remove('being-dragged');
-        element.style.opacity = '1';
-      });
-      
-      // すべてのドラッグオーバー効果をクリア
-      document.querySelectorAll('.drag-over').forEach(element => {
-        element.classList.remove('drag-over');
-      });
-      
-      // ドラッグ関連変数をリセット
-      draggedElements = [];
-      draggedPrimaryElement = null;
-      dragCounter = {};
-      
-      return false;
-    }
-    
-    // インデックスを更新する関数
-    function updateIndices() {
-      const thumbnails = document.querySelectorAll('.thumbnail-wrapper');
-      thumbnails.forEach((thumbnail, index) => {
-        thumbnail.setAttribute('data-index', index.toString());
-      });
-    }
-    
-    // スタイルを追加する関数
-    function addDragDropStyles() {
-      const styleId = 'enhanced-drag-styles';
-      
-      // 既存のスタイルは削除しない（競合を避けるため）
-      if (!document.getElementById(styleId)) {
-        const styleElement = document.createElement('style');
-        styleElement.id = styleId;
-        styleElement.textContent = `
-        /* ドラッグ可能な要素 */
-        .thumbnail-wrapper {
-          cursor: grab;
-          transition: all 0.2s ease-in-out;
-          user-select: none;
-        }
-        
-        /* ドラッグ中の要素 */
-        .being-dragged {
-          outline: 2px solid #1565C0;
-          z-index: 1000;
-        }
-        
-        /* ドラッグオーバー時の要素（点線ボーダーを強調） */
-        .drag-over {
-          border: 3px dashed #0a1d4d !important;
-          background-color: rgba(10, 29, 77, 0.1);
-          transform: scale(1.03);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        /* チェック状態の要素にも特別なスタイルを適用 */
-        .thumbnail-wrapper .page-checkbox:checked + span {
-          background-color: rgba(10, 29, 77, 0.05);
-        }
-        
-        /* サムネイルホバー時のスタイル */
-        .thumbnail-wrapper:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        `;
-        document.head.appendChild(styleElement);
-      }
-    }
-    
-    // PDFファイル読み込み後のイベントフック
-    function setupPdfLoadEvents() {
-      // ファイル選択イベント（メイン）
-      const fileInput = document.getElementById('file-input');
-      if (fileInput) {
-        fileInput.addEventListener('change', function() {
-          // 読み込み完了後に実行するため遅延（長めに設定）
-          setTimeout(initDragDrop, 1500);
-        });
-      }
-      
-      // ファイル追加イベント
-      const addFileInput = document.getElementById('file-add-input');
-      if (addFileInput) {
-        addFileInput.addEventListener('change', function() {
-          // 読み込み完了後に実行するため遅延（長めに設定）
-          setTimeout(initDragDrop, 1500);
-        });
-      }
-      
-      // 全選択ボタンの追加（オプション）
-      const controlsContainer = document.querySelector('.controls-container') || document.getElementById('controls');
-      if (controlsContainer && !document.getElementById('select-all-btn')) {
-        const selectAllBtn = document.createElement('button');
-        selectAllBtn.id = 'select-all-btn';
-        selectAllBtn.className = 'btn blue darken-4 waves-effect waves-light';
-        selectAllBtn.innerHTML = '<i class="material-icons left">select_all</i> 全選択';
-        selectAllBtn.addEventListener('click', toggleSelectAll);
-        
-        // 既存のボタンの近くに配置
-        const removeCheckedBtn = document.getElementById('remove-checked-btn');
-        if (removeCheckedBtn && removeCheckedBtn.parentNode) {
-          removeCheckedBtn.parentNode.insertBefore(selectAllBtn, removeCheckedBtn);
-        } else {
-          controlsContainer.appendChild(selectAllBtn);
-        }
-      }
-    }
-    
-    // 全選択/解除をトグルする関数
-    let allSelected = false;
-    function toggleSelectAll() {
-      const checkboxes = document.querySelectorAll('.page-checkbox');
-      allSelected = !allSelected;
-      
-      checkboxes.forEach(checkbox => {
-        checkbox.checked = allSelected;
-      });
-      
-      // トースト通知
-      if (typeof M !== 'undefined' && M.toast) {
-        M.toast({ html: allSelected ? '全ページを選択しました' : '選択を解除しました' });
-      }
-      
-      // ボタンテキストの更新
-      const selectAllBtn = document.getElementById('select-all-btn');
-      if (selectAllBtn) {
-        selectAllBtn.innerHTML = allSelected ? 
-          '<i class="material-icons left">clear_all</i> 選択解除' : 
-          '<i class="material-icons left">select_all</i> 全選択';
-      }
-    }
-    
-    // ドラッグドロップの設定が有効かどうかを確認する関数
-    function checkDragDropEnabled() {
-      const thumbnails = document.querySelectorAll('.thumbnail-wrapper[draggable="true"]');
-      return thumbnails.length > 0;
-    }
-    
-    // 定期的にドラッグドロップ設定を確認して再適用する
-    function ensureDragDropWorking() {
-      // PDFが読み込まれているが、ドラッグドロップが有効でない場合は初期化
-      const previewArea = document.getElementById('pdf-preview-area');
-      const hasThumbnails = previewArea && previewArea.querySelectorAll('.thumbnail-wrapper').length > 0;
-      
-      if (hasThumbnails && !checkDragDropEnabled()) {
-        console.log('ドラッグドロップが無効になっています。再初期化します。');
-        initDragDrop();
-      }
-    }
-    
-    // ページ読み込み完了時に実行
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOMContentLoaded - ドラッグドロップ初期化開始');
-      
-      // PDFファイル読み込みイベントを設定
-      setupPdfLoadEvents();
-      
-      // 既にPDFが表示されている場合は即実行
-      setTimeout(initDragDrop, 800);
-      
-      // 定期的にドラッグドロップ設定を確認（5秒ごと）
-      setInterval(ensureDragDropWorking, 5000);
-    });
-    
-    // すでにDOMが読み込まれている場合は即実行
-    if (document.readyState !== 'loading') {
-      console.log('DOM already loaded - ドラッグドロップ即時初期化');
-      setupPdfLoadEvents();
-      setTimeout(initDragDrop, 800);
-      
-      // 定期的にドラッグドロップ設定を確認（5秒ごと）
-      setInterval(ensureDragDropWorking, 5000);
-    }
-  })(); // ここでドラッグドロップの即時実行関数を終了
 
 })(); // ここでメイン処理の即時実行関数を終了
 
@@ -902,10 +480,24 @@ function showUpdateMessage() {
 }
 
 // ユーティリティ関数や非同期PDFロード処理
+// ユーティリティ関数や非同期PDFロード処理
 async function loadAndPreviewPDF(files) {
   console.log('PDFファイルを読み込みます...');
   // ...元の処理...
-  setTimeout(initDragDrop, 500); // 追加（500ms程度でOK）
+  // initDragDropは削除されたので、呼び出さない
+  // 代わりにチェックボックスイベントを設定
+  setTimeout(() => {
+    document.querySelectorAll('.page-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const wrapper = this.closest('.thumbnail-wrapper');
+        if (this.checked) {
+          wrapper.classList.add('selected');
+        } else {
+          wrapper.classList.remove('selected');
+        }
+      });
+    });
+  }, 500);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -938,4 +530,137 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>`;
     document.body.appendChild(banner);
   }
+});
+
+// ページのインデックスを更新する関数（Sortable.jsで必要）
+function updateIndices() {
+  const thumbnails = document.querySelectorAll('.thumbnail-wrapper');
+  thumbnails.forEach((thumbnail, index) => {
+    thumbnail.setAttribute('data-index', index.toString());
+  });
+}
+
+// ページが読み込まれた後にSortableの設定を初期化
+document.addEventListener('DOMContentLoaded', () => {
+  // PDFが読み込まれた後、もしくは追加された後にチェックボックスのイベントを設定
+  function setupCheckboxEvents() {
+    document.querySelectorAll('.page-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const wrapper = this.closest('.thumbnail-wrapper');
+        if (this.checked) {
+          try {
+            wrapper.classList.add('selected');
+          } catch (e) {
+            console.error('選択処理エラー:', e);
+          }
+        } else {
+          wrapper.classList.remove('selected');
+        }
+      });
+    });
+  }
+
+  // ファイル選択時と追加時にイベントハンドラを設定
+  const fileInput = document.getElementById('file-input');
+  const addFileInput = document.getElementById('file-add-input');
+  
+  if (fileInput) {
+    fileInput.addEventListener('change', () => {
+      setTimeout(setupCheckboxEvents, 1000);
+    });
+  }
+  
+  if (addFileInput) {
+    addFileInput.addEventListener('change', () => {
+      setTimeout(setupCheckboxEvents, 1000);
+    });
+  }
+});
+
+// ファイル読み込み完了後、PDFサムネイルが表示されたらSortableを初期化
+function initSortable() {
+  const previewArea = document.getElementById('pdf-preview-area');
+  if (!previewArea) return;
+  
+  console.log('Sortable動的初期化を実行');
+  
+  // 既存のSortableインスタンスを破棄（もし存在すれば）
+  if (previewArea.sortableInstance) {
+    try {
+      previewArea.sortableInstance.destroy();
+    } catch (e) {
+      console.warn("既存のSortableインスタンス破棄中にエラー:", e);
+    }
+  }
+  
+  // MultiDragプラグインをマウント
+  try {
+    Sortable.mount(window.MultiDragPlugin || Sortable.MultiDrag);
+    console.log("MultiDragプラグインをマウントしました");
+  } catch (e) {
+    console.error("MultiDragプラグインのマウント中にエラー:", e);
+  }
+  
+  // 新しいSortableインスタンスを作成
+previewArea.sortableInstance = Sortable.create(previewArea, {
+  animation: 150,
+  draggable: '.thumbnail-wrapper',
+  handle: '.card-image',  // ここで「ドラッグハンドル」を指定
+  multiDrag: true,
+  delayOnTouchOnly: true, // モバイルでの長押しでドラッグ開始
+  delay: 300,            // 長押し時間（ミリ秒）
+  selectedClass: 'selected',
+    onEnd: function() {
+      // グローバル関数を呼び出し
+      window.updatePageNumbers();
+      if (typeof M !== 'undefined') {
+        M.toast({ html: 'Sıralama güncellendi' });
+      }
+    }
+  });
+  
+  // チェックボックスのイベントを設定
+  document.querySelectorAll('.page-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      const wrapper = this.closest('.thumbnail-wrapper');
+      if (!wrapper) return;
+      
+      if (this.checked) {
+        try {
+          // MultiDragの選択機能を使用
+          previewArea.sortableInstance.multiDrag.select(wrapper);
+        } catch (err) {
+          // 失敗した場合はクラスを直接追加
+          wrapper.classList.add('selected');
+        }
+      } else {
+        try {
+          // MultiDragの選択解除機能を使用
+          previewArea.sortableInstance.multiDrag.deselect(wrapper);
+        } catch (err) {
+          // 失敗した場合はクラスを直接削除
+          wrapper.classList.remove('selected');
+        }
+      }
+    });
+  });
+  
+  console.log('Sortable初期化完了');
+}
+
+// 既存の関数を改変して、ファイル読み込み後にSortableを初期化
+async function loadAndPreviewPDF(files) {
+  console.log('PDFファイルを読み込みます...');
+  // ...元の処理...
+  
+  // ファイル読み込み完了後にSortableを初期化
+  setTimeout(initSortable, 1000);
+}
+
+// 既存のaddFileInputイベントリスナーの末尾にも追加
+addFileInput.addEventListener('change', async (e) => {
+  // ...既存のコード...
+  
+  // ファイル追加後にSortableを再初期化
+  setTimeout(initSortable, 1000);
 });

@@ -141,8 +141,8 @@ a#download-link.disabled {
           user-select: none;
   /* iOSの長押しメニューを抑制 */
   -webkit-touch-callout: none;
-  /* タッチ操作の既定動作を抑制（要検証） */
-  touch-action: none;
+  /* タッチ操作の設定を変更 */
+  touch-action: auto; /* または manipulation */
 }
 
 
@@ -335,7 +335,9 @@ a#download-link.disabled {
   margin-bottom: 0.5rem !important; /* 行間の余白を小さく */
 }
 
+/* ドラッグハンドル部分だけ特別に設定 */
 .card-image {
+  touch-action: none; /* ドラッグハンドル部分だけドラッグ専用に */
   padding: 22px !important;
 }
 
@@ -543,3 +545,21 @@ body {
 }
 
 
+
+/* Sortableのスタイル */
+.thumbnail-wrapper.selected {
+  background-color: rgba(10, 29, 77, 0.1);
+  outline: 2px solid #0a1d4d;
+  z-index: 10;
+}
+
+.sortable-ghost {
+  opacity: 0.4;
+  background-color: #f0f0f0;
+}
+
+.sortable-drag {
+  opacity: 0.8;
+  transform: scale(1.05);
+  z-index: 1000;
+}

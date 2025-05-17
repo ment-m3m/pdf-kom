@@ -1,4 +1,4 @@
-const CACHE_NAME = 'my-pwa-cache-v1.03';
+const CACHE_NAME = 'my-pwa-cache-v1.06';
 const FILES_TO_CACHE = [
   '/',
   './index.html',
@@ -8,6 +8,8 @@ const FILES_TO_CACHE = [
   './libs/materialize.min.css',
   './libs/materialize.min.js',
   './libs/pdf-lib.min.js',
+	'./libs/MultiDrag.js',
+	'./libs/Sortable.min.js',
   './pdfjs/pdf.js',
   './pdfjs/pdf.worker.min.js',
   './icons/icon-192.png',
