@@ -503,9 +503,15 @@ body {
 /* モバイル向けのタッチ操作に最適化 */
 @media (max-width: 768px) {
   .thumbnail-wrapper {
+		
     touch-action: pan-y; /* 縦方向のスクロールを許可 */
+    width: 40% !important;
   }
-  
+    /* canvas 自身を幅いっぱいに */
+  .thumbnail-wrapper canvas {
+    width: 50% !important;
+    height: auto !important;
+  }
   .drag-over {
     border-width: 3px !important; /* モバイルではより太い枠線 */
   }
