@@ -368,7 +368,7 @@ async function processPdfFiles(files, isAddition = false) {
 	
 }
 
-// iPhoneの文字選択機能と競合しない長押し検出の実装
+// iPhoneの文字選択機能と競合しない長押し検出の実装（修正版）
 function setupLongPressSelection(element) {
   let touchStartTime = 0;
   let touchStartX = 0;
@@ -404,6 +404,8 @@ function setupLongPressSelection(element) {
         // このアイテムを選択
         this.classList.add('selected');
         this.setAttribute('data-selected', 'true');
+        
+        // 選択カウンターを更新
         updateSelectionCounter();
         
         // 長押しのビジュアルフィードバック
@@ -447,7 +449,15 @@ function setupLongPressSelection(element) {
       if (touchDuration < LONG_PRESS_THRESHOLD) {
         this.classList.toggle('selected');
         this.setAttribute('data-selected', this.classList.contains('selected') ? 'true' : 'false');
+        
+        // 選択カウンターを更新
         updateSelectionCounter();
+        
+        // 選択が0になった場合は選択モード終了
+        if (document.querySelectorAll('.thumbnail-wrapper.selected').length === 0) {
+          deactivateSelectionMode();
+        }
+        
         e.preventDefault(); // デフォルトの動作を抑制
       }
     }
@@ -473,97 +483,143 @@ function setupLongPressSelection(element) {
     }
   });
 }
-
 // 選択モードの活性化
+// 選択モードの活性化（最終版）
 function activateSelectionMode() {
+  // すでに選択モードの場合は何もしない
+  if (isSelectionMode) return;
+  
+  // 選択モードフラグをON
   isSelectionMode = true;
+  
+  // bodyにクラスを追加（スタイル変更用）
   document.body.classList.add('selection-mode');
   
-  // 選択モードインジケーターの表示
+  // 選択モードUI要素を表示
   showSelectionModeIndicator();
   
   console.log('選択モード: ON');
 }
 
-// 選択モードの非活性化
+
+// 選択モードの非活性化（修正版）
+// 選択モードの非活性化（最終版）
 function deactivateSelectionMode() {
+  // 選択モードでない場合は何もしない
+  if (!isSelectionMode) return;
+  
+  // 選択モードフラグをOFF
   isSelectionMode = false;
+  
+  // bodyからクラスを削除
   document.body.classList.remove('selection-mode');
   
-  // 選択モードインジケーターの非表示
+  // すべての選択を解除
+  document.querySelectorAll('.thumbnail-wrapper.selected').forEach(item => {
+    item.classList.remove('selected');
+    item.setAttribute('data-selected', 'false');
+  });
+  
+  // 選択モードUI要素を非表示
   hideSelectionModeIndicator();
   
   console.log('選択モード: OFF');
 }
 
-// 選択モードインジケーターの表示
+// 選択モードインジケーターの表示（修正版 2）
+// 選択モードインジケーターの表示（最終版）
 function showSelectionModeIndicator() {
-  // すでに存在する場合は何もしない
-  if (document.getElementById('selection-mode-indicator')) return;
+  // まず既存のUI要素をすべて削除
+  hideSelectionModeIndicator();
   
-  // 選択モードのインジケーターを作成
-  const indicator = document.createElement('div');
-  indicator.id = 'selection-mode-indicator';
-  indicator.className = 'selection-mode-indicator';
+  // 1. ヘッダー内に選択カウンターを表示
+  const counter = document.createElement('div');
+  counter.id = 'header-selection-counter';
+  counter.className = 'header-selection-counter';
+  counter.textContent = '0 selected';
   
-  // 選択カウンター
-  const counter = document.createElement('span');
-  counter.id = 'selection-counter';
-  counter.textContent = '0 選択中';
-  indicator.appendChild(counter);
+  // ヘッダーに追加
+  const appHeader = document.getElementById('app-header');
+  if (appHeader) {
+    appHeader.appendChild(counter);
+  }
   
-  // 全選択ボタン
-  const selectAllBtn = document.createElement('button');
-  selectAllBtn.id = 'select-all';
-  selectAllBtn.className = 'btn primary-bg white-text btn-small';
-  selectAllBtn.textContent = '全選択';
-  selectAllBtn.addEventListener('click', function() {
-    document.querySelectorAll('.thumbnail-wrapper').forEach(item => {
-      item.classList.add('selected');
-      item.setAttribute('data-selected', 'true');
-    });
-    updateSelectionCounter();
-  });
-  indicator.appendChild(selectAllBtn);
+  // 2. Cancelボタンを作成
+  const cancelBtn = document.createElement('button');
+  cancelBtn.id = 'cancel-selection-btn';
+  cancelBtn.className = 'btn red darken-2 white-text round-btn';
+  cancelBtn.textContent = 'cancel';
   
-  // 終了ボタン
-  const exitBtn = document.createElement('button');
-  exitBtn.id = 'exit-selection-mode';
-  exitBtn.className = 'btn red darken-2 white-text btn-small';
-  exitBtn.textContent = '選択終了';
-  exitBtn.addEventListener('click', function() {
-    // 選択モードを終了
+  // Cancelボタンのイベントリスナーを設定（イベント伝播を防止）
+  cancelBtn.onclick = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    // 選択モードを終了し、すべての選択を解除
     deactivateSelectionMode();
-  });
-  indicator.appendChild(exitBtn);
+  };
   
-  // ボディに追加
-  document.body.appendChild(indicator);
+  // 3. Delボタンの右側にCancelボタンを配置
+  const removeCheckedBtn = document.getElementById('remove-checked-btn');
+  if (removeCheckedBtn && removeCheckedBtn.parentNode) {
+    // 既存のcancelボタンがないことを再確認
+    if (!document.getElementById('cancel-selection-btn')) {
+      removeCheckedBtn.parentNode.insertBefore(cancelBtn, removeCheckedBtn.nextSibling);
+    }
+  }
   
-  // 初期選択数を表示
+  // 4. 選択カウンターを更新
   updateSelectionCounter();
+  
+  console.log('選択モードUI表示完了');
 }
 
-// 選択モードインジケーターの非表示
+// 選択モードインジケーターの非表示（最終版）
 function hideSelectionModeIndicator() {
+  // 1. ヘッダー内の選択カウンターを削除
+  const counter = document.getElementById('header-selection-counter');
+  if (counter) {
+    counter.remove();
+  }
+  
+  // 2. Cancelボタンを削除
+  const cancelBtn = document.getElementById('cancel-selection-btn');
+  if (cancelBtn) {
+    cancelBtn.remove();
+  }
+  
+  // 3. 古い選択モードインジケーターがあれば削除（互換性のため）
   const indicator = document.getElementById('selection-mode-indicator');
   if (indicator) {
     indicator.remove();
   }
+  
+  console.log('選択モードUI削除完了');
 }
 
-// 選択カウンターの更新
+// 選択カウンターの更新（最終版）
 function updateSelectionCounter() {
   const selectedCount = document.querySelectorAll('.thumbnail-wrapper.selected').length;
-  const counter = document.getElementById('selection-counter');
+  const counter = document.getElementById('header-selection-counter');
   
   if (counter) {
-    counter.textContent = `${selectedCount} 選択中`;
+    // カウンター数字の更新
+    counter.textContent = `${selectedCount} chosen`;
+    
+    // 選択がない場合は選択カウンターを非表示、ある場合は表示
+    if (selectedCount === 0) {
+      counter.style.display = 'none';
+    } else {
+      counter.style.display = 'block';
+    }
   }
   
   console.log(`選択カウンター更新: ${selectedCount}件`);
+  
+  // 選択が0になった場合は選択モードを終了
+  if (selectedCount === 0 && isSelectionMode) {
+    deactivateSelectionMode();
+  }
 }
-
 // サムネイルクリックの処理
 function handleThumbnailClick(e) {
   // カードコンテンツ部分のクリックは無視
@@ -935,7 +991,7 @@ function safeDownloadForPC(blob) {
   notifyDiv.style.zIndex = '2000';
   notifyDiv.style.maxWidth = '80%';
   notifyDiv.style.textAlign = 'center';
-  notifyDiv.innerHTML = 'PDFが準備できました！<br><span style="font-size:0.8em; opacity:0.8;">自動的にダウンロードが始まります...</span>';
+  notifyDiv.innerHTML = 'İndirme otomatik olarak başlıyor<br><span style="font-size:0.8em; opacity:0.8;">Download starting automatically...</span>';
   document.body.appendChild(notifyDiv);
   
   // 少し遅延してからダウンロードを開始

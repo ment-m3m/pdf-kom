@@ -19,20 +19,22 @@
 </head>
 <body>
 	<div id="background-message">
-		<h5>Open your PDF files.</h5>
-		<p>You can:</p>
-		<ul>
-			<li>Merge multiple PDFs</li>
-			<li>Change page orientation</li>
-			<li>Delete specific pages</li>
-		</ul>
 		<br>
 		<h5>PDF dosyalarınızı açın.</h5>
+		<h7>Open your PDF files.</h7>
+
 		<p>Şunları yapabilirsiniz:</p>
+		<p>You can:</p>
 		<ul>
 			<li>Birden fazla PDF'yi birleştirin</li>
 			<li>Sayfa yönünü değiştirin</li>
 			<li>Belirli sayfaları silin</li>
+		</ul>
+		<br>
+		<ul>
+			<li>Merge multiple PDFs</li>
+			<li>Change page orientation</li>
+			<li>Delete specific pages</li>
 		</ul>
 	</div>
 	
@@ -41,6 +43,11 @@
   <img src="./icons/icon-96-clear.png" alt="icon" class="header-icon">
   <div class="header-title">PDF jem</div>
 	
+	<div class="header-download">
+	<a id="download-link" class="nav-download-btn waves-effect " download>
+		download
+	</a>
+</div>
 </header>
 
 
@@ -54,11 +61,6 @@
 <!-- 操作ボタン（ナビゲーションのすぐ下） -->
 <div class="top-controls top-controls-fixed center-align">
 <!-- タイトル下に中央配置 -->
-<div class="header-download">
-	<a id="download-link" class="btn accent-bg nav-download-btn round-btn waves-effect " download>
-		download
-	</a>
-</div>
   <button id="rotate-btn" class="btn primary-bg round-btn white-text">rotate ↻</button>
   <button id="align-horz-btn" class="btn primary-bg round-btn white-text waves-effect">all ⇆</button>
   <button id="align-vert-btn" class="btn primary-bg round-btn white-text  waves-light">all ⇅</button>
@@ -66,18 +68,17 @@
 
 </div>
 
-<div id="update-message" style="display:none; position:fixed; bottom:10px; width:100%; background:#fffae6; color:#000; padding:10px; text-align:center; z-index:999;">
+<div id="update-message" style="display:none; position:fixed;  width:100%; background:#fffae6; color:#000;  text-align:center; z-index:999;">
   New feature added! Please reload.<button onclick="location.reload()">reload</button>
 </div>
 
-
 <!-- 1. add pdf を下に -->
 <input type="file" id="file-input" accept="application/pdf" multiple hidden>
-<label for="file-input" class="btn nav-download-btn bottom-addpdf-btn  waves-effect">open pdf</label>
+<label for="file-input" class="btn  bottom-openpdf-btn  waves-effect">open pdf</label>
 
 <!-- 2. + をその上に -->
 <input type="file" id="file-add-input" accept="application/pdf" multiple hidden>
-<label for="file-add-input" class="btn nav-download-btn bottom-plus-btn wide-plus waves-effect">＋</label>
+<label for="file-add-input" class="btn  bottom-plus-btn wide-plus waves-effect">＋</label>
 
 
 
