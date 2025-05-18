@@ -1,10 +1,13 @@
-// js/main.js - 最小機能バージョン
+// js/main.js - 最小機能バージョン + 長押し選択機能
 
 // グローバル変数
 let pdfDocs = [];
 let globalPdfIndex = 0;
 let globalPageCount = 0;
 let totalPages = 0;
+let isSelectionMode = false; // 選択モードのフラグ
+let longPressTimer; // 長押し検出用タイマー
+
 
 // 初期状態
 document.addEventListener('DOMContentLoaded', function() {
@@ -18,6 +21,16 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Service Worker設定
   setupServiceWorker();
+  
+  // 選択モード終了のためのクリックイベント追加
+  document.addEventListener('click', function(e) {
+    if (isSelectionMode && 
+        !e.target.closest('.thumbnail-wrapper') && 
+        !e.target.closest('#selection-mode-indicator') &&
+        !e.target.closest('.top-controls')) {
+      deactivateSelectionMode();
+    }
+  });
   
   console.log('初期化完了');
 });
@@ -177,6 +190,11 @@ function setupButtons() {
       
       // 選択カウンターの更新
       updateSelectionCounter();
+      
+      // 選択モードが有効で選択アイテムがなくなった場合は選択モードを終了
+      if (isSelectionMode && document.querySelectorAll('.thumbnail-wrapper.selected').length === 0) {
+        deactivateSelectionMode();
+      }
     });
   }
   
@@ -308,6 +326,9 @@ async function processPdfFiles(files, isAddition = false) {
         // サムネイル全体にクリックイベントを設定
         thumbnail.addEventListener('click', handleThumbnailClick);
         
+        // 長押し選択機能を追加
+        setupLongPressSelection(thumbnail);
+        
         // キャンバス要素にも個別にクリックイベントを設定
         canvas.addEventListener('click', function(e) {
           e.stopPropagation(); // 親へのイベント伝播を停止
@@ -344,12 +365,214 @@ async function processPdfFiles(files, isAddition = false) {
   
   // ボタンを有効化
   enableControls();
+	
+}
+
+// iPhoneの文字選択機能と競合しない長押し検出の実装
+function setupLongPressSelection(element) {
+  let touchStartTime = 0;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  const LONG_PRESS_THRESHOLD = 500; // 長押し判定の閾値（ミリ秒）
+  const MOVE_THRESHOLD = 10; // 移動判定の閾値（ピクセル）
+  
+  // タッチスタート
+  element.addEventListener('touchstart', function(e) {
+    // カードコンテンツ部分のタッチは無視
+    if (e.target.closest('.card-content')) return;
+    
+    // 時間とタッチ位置を記録
+    touchStartTime = Date.now();
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    
+    // 長押しタイマーをセット
+    longPressTimer = setTimeout(() => {
+      // 長押し判定
+      const touchElement = document.elementFromPoint(touchStartX, touchStartY);
+      if (touchElement && this.contains(touchElement)) {
+        // 選択モードが未活性なら活性化
+        if (!isSelectionMode) {
+          activateSelectionMode();
+        }
+        
+        // 振動フィードバック
+        if (navigator.vibrate) {
+          navigator.vibrate(100);
+        }
+        
+        // このアイテムを選択
+        this.classList.add('selected');
+        this.setAttribute('data-selected', 'true');
+        updateSelectionCounter();
+        
+        // 長押しのビジュアルフィードバック
+        this.classList.add('long-press');
+        setTimeout(() => {
+          this.classList.remove('long-press');
+        }, 500);
+      }
+    }, LONG_PRESS_THRESHOLD);
+  }, { passive: true });
+  
+  // タッチムーブ（スクロール検出）
+  element.addEventListener('touchmove', function(e) {
+    if (!longPressTimer) return;
+    
+    // 移動距離を計算
+    const moveX = Math.abs(e.touches[0].clientX - touchStartX);
+    const moveY = Math.abs(e.touches[0].clientY - touchStartY);
+    
+    // 閾値以上の移動があればキャンセル
+    if (moveX > MOVE_THRESHOLD || moveY > MOVE_THRESHOLD) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+  }, { passive: true });
+  
+  // タッチエンド
+  element.addEventListener('touchend', function(e) {
+    // 長押しタイマーをクリア
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+    
+    // カードコンテンツ部分のタッチは無視
+    if (e.target.closest('.card-content')) return;
+    
+    // 選択モード中のタップ
+    if (isSelectionMode) {
+      const touchDuration = Date.now() - touchStartTime;
+      
+      // 短いタップの場合のみ選択/解除を切り替え（長押しは除外）
+      if (touchDuration < LONG_PRESS_THRESHOLD) {
+        this.classList.toggle('selected');
+        this.setAttribute('data-selected', this.classList.contains('selected') ? 'true' : 'false');
+        updateSelectionCounter();
+        e.preventDefault(); // デフォルトの動作を抑制
+      }
+    }
+  });
+  
+  // タッチキャンセル
+  element.addEventListener('touchcancel', function() {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  });
+  
+  // 標準の文字選択を無効化
+  element.addEventListener('selectstart', function(e) {
+    e.preventDefault();
+    return false;
+  });
+  
+  // コンテキストメニューを無効化
+  element.addEventListener('contextmenu', function(e) {
+    if (isSelectionMode) {
+      e.preventDefault();
+      return false;
+    }
+  });
+}
+
+// 選択モードの活性化
+function activateSelectionMode() {
+  isSelectionMode = true;
+  document.body.classList.add('selection-mode');
+  
+  // 選択モードインジケーターの表示
+  showSelectionModeIndicator();
+  
+  console.log('選択モード: ON');
+}
+
+// 選択モードの非活性化
+function deactivateSelectionMode() {
+  isSelectionMode = false;
+  document.body.classList.remove('selection-mode');
+  
+  // 選択モードインジケーターの非表示
+  hideSelectionModeIndicator();
+  
+  console.log('選択モード: OFF');
+}
+
+// 選択モードインジケーターの表示
+function showSelectionModeIndicator() {
+  // すでに存在する場合は何もしない
+  if (document.getElementById('selection-mode-indicator')) return;
+  
+  // 選択モードのインジケーターを作成
+  const indicator = document.createElement('div');
+  indicator.id = 'selection-mode-indicator';
+  indicator.className = 'selection-mode-indicator';
+  
+  // 選択カウンター
+  const counter = document.createElement('span');
+  counter.id = 'selection-counter';
+  counter.textContent = '0 選択中';
+  indicator.appendChild(counter);
+  
+  // 全選択ボタン
+  const selectAllBtn = document.createElement('button');
+  selectAllBtn.id = 'select-all';
+  selectAllBtn.className = 'btn primary-bg white-text btn-small';
+  selectAllBtn.textContent = '全選択';
+  selectAllBtn.addEventListener('click', function() {
+    document.querySelectorAll('.thumbnail-wrapper').forEach(item => {
+      item.classList.add('selected');
+      item.setAttribute('data-selected', 'true');
+    });
+    updateSelectionCounter();
+  });
+  indicator.appendChild(selectAllBtn);
+  
+  // 終了ボタン
+  const exitBtn = document.createElement('button');
+  exitBtn.id = 'exit-selection-mode';
+  exitBtn.className = 'btn red darken-2 white-text btn-small';
+  exitBtn.textContent = '選択終了';
+  exitBtn.addEventListener('click', function() {
+    // 選択モードを終了
+    deactivateSelectionMode();
+  });
+  indicator.appendChild(exitBtn);
+  
+  // ボディに追加
+  document.body.appendChild(indicator);
+  
+  // 初期選択数を表示
+  updateSelectionCounter();
+}
+
+// 選択モードインジケーターの非表示
+function hideSelectionModeIndicator() {
+  const indicator = document.getElementById('selection-mode-indicator');
+  if (indicator) {
+    indicator.remove();
+  }
+}
+
+// 選択カウンターの更新
+function updateSelectionCounter() {
+  const selectedCount = document.querySelectorAll('.thumbnail-wrapper.selected').length;
+  const counter = document.getElementById('selection-counter');
+  
+  if (counter) {
+    counter.textContent = `${selectedCount} 選択中`;
+  }
+  
+  console.log(`選択カウンター更新: ${selectedCount}件`);
 }
 
 // サムネイルクリックの処理
 function handleThumbnailClick(e) {
   // カードコンテンツ部分のクリックは無視
   if (e.target.closest('.card-content')) {
+    return;
+  }
+  
+  // スマホの選択モード中は何もしない（タッチイベントで処理）
+  if (isSelectionMode && ('ontouchstart' in window)) {
     return;
   }
   
@@ -406,12 +629,6 @@ function updatePageNumbers() {
   // グローバル変数の更新
   totalPages = count;
   globalPageCount = count;
-}
-
-// 選択カウンターの更新
-function updateSelectionCounter() {
-  const selectedCount = document.querySelectorAll('.thumbnail-wrapper.selected').length;
-  console.log(`選択カウンター更新: ${selectedCount}件`);
 }
 
 // ドラッグ＆ドロップの有効化
@@ -655,58 +872,19 @@ async function downloadMergedPdf() {
     const mergedBytes = await mergedPdf.save();
     const blob = new Blob([mergedBytes], { type: 'application/pdf' });
     
-    // 安全なダウンロード方法：Data URLを使用
-    // この方法ではブラウザの「安全ではないダウンロード」警告を回避できる場合がある
-    const reader = new FileReader();
-    reader.onload = function() {
-      // Data URL形式でリンクを作成
-      const dataUrl = reader.result;
-      const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = 'merged.pdf';
-      link.target = '_blank'; // 新しいタブで開く
-      
-      // リンクを表示して自動的にクリック
-      document.body.appendChild(link);
-      
-      // iOS Safariでは直接クリックが必要な場合がある
-      if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-        // iOSの場合はリンクを表示
-        link.style.position = 'fixed';
-        link.style.top = '50%';
-        link.style.left = '50%';
-        link.style.transform = 'translate(-50%, -50%)';
-        link.style.padding = '20px';
-        link.style.backgroundColor = '#2196F3';
-        link.style.color = 'white';
-        link.style.borderRadius = '10px';
-        link.style.textDecoration = 'none';
-        link.style.zIndex = '2000';
-        link.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.3)';
-        link.textContent = 'ここをタップしてPDFをダウンロード';
-        
-        // プログレスバーを削除
-        document.body.removeChild(progressContainer);
-        
-        // 10秒後に非表示
-        setTimeout(() => {
-          if (link.parentNode) {
-            link.parentNode.removeChild(link);
-          }
-        }, 10000);
-      } else {
-        // 他の環境では自動クリック
-        link.click();
-        document.body.removeChild(link);
-        
-        // プログレスバーを削除
-        document.body.removeChild(progressContainer);
-      }
-    };
+    // プログレスバーを削除
+    document.body.removeChild(progressContainer);
     
-    // Blobをデータ URL に変換
-    reader.readAsDataURL(blob);
+    // iOSかどうかを判定
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     
+    if (isIOS) {
+      // iOSでは常に新しいタブでPDFを開く（共有メニューなし）
+      openPDFInNewTab(blob);
+    } else {
+      // PCでの安全な方法（Data URLではなくBlobURLを使用）
+      safeDownloadForPC(blob);
+    }
   } catch (error) {
     console.error('マージ処理エラー:', error);
     
@@ -718,4 +896,99 @@ async function downloadMergedPdf() {
     
     alert('エラーが発生しました。コンソールをご確認ください。');
   }
+}
+
+// PCでの安全なダウンロード処理（「安全でないダウンロード」警告を避ける）
+function safeDownloadForPC(blob) {
+  // Blob URLを使用
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'merged.pdf';
+  
+  // 「安全でないダウンロード」警告を回避するための属性設定
+  // https以外のサイトでは機能しないことがあります
+  link.setAttribute('target', '_self');
+  link.setAttribute('rel', 'noopener noreferrer');
+  
+  // CORSヘッダーを回避するためにリンクを非表示にせず、クリックもしない
+  link.style.position = 'fixed';
+  link.style.opacity = '0';
+  link.style.top = '10px';
+  link.style.left = '10px';
+  link.style.width = '1px';
+  link.style.height = '1px';
+  document.body.appendChild(link);
+  
+  // 一部のブラウザではユーザージェスチャーが必要なため直接クリックはしない
+  // 代わりにユーザーに通知
+  const notifyDiv = document.createElement('div');
+  notifyDiv.style.position = 'fixed';
+  notifyDiv.style.top = '50%';
+  notifyDiv.style.left = '50%';
+  notifyDiv.style.transform = 'translate(-50%, -50%)';
+  notifyDiv.style.backgroundColor = 'rgba(33, 150, 243, 0.9)';
+  notifyDiv.style.color = 'white';
+  notifyDiv.style.padding = '15px 20px';
+  notifyDiv.style.borderRadius = '10px';
+  notifyDiv.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+  notifyDiv.style.zIndex = '2000';
+  notifyDiv.style.maxWidth = '80%';
+  notifyDiv.style.textAlign = 'center';
+  notifyDiv.innerHTML = 'PDFが準備できました！<br><span style="font-size:0.8em; opacity:0.8;">自動的にダウンロードが始まります...</span>';
+  document.body.appendChild(notifyDiv);
+  
+  // 少し遅延してからダウンロードを開始
+  setTimeout(() => {
+    // ブラウザの挙動により自動クリックはブロックされる場合があるためシミュレーション
+    link.dispatchEvent(new MouseEvent('click', {
+      view: window,
+      bubbles: true,
+      cancelable: true
+    }));
+    
+    // 通知を消す
+    setTimeout(() => {
+      document.body.removeChild(notifyDiv);
+    }, 2000);
+    
+    // クリーンアップ
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 3000);
+  }, 500);
+}
+
+// PDFを新しいタブで開く
+function openPDFInNewTab(blob) {
+  // Blob URLを使用
+  const url = URL.createObjectURL(blob);
+  
+  // タイトルにタイムスタンプを付けて、常に新しいタブで開くようにする
+  const timestamp = new Date().getTime();
+  const newWindow = window.open(url, `pdf_${timestamp}`);
+  
+  // 新しいタブがブロックされた場合のフォールバック
+  if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+    // ポップアップがブロックされた可能性があるため、現在のウィンドウで開く
+    window.location.href = url;
+  }
+  
+  // URLを解放するタイミングを遅らせる
+  // iOSではタブを開いた直後に解放すると表示されない場合がある
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 5000);  // 5秒後に解放
+}
+
+// PDFを新しいタブで開く
+function openPDFInNewTab(blob) {
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  
+  // 少し遅延してURLを解放
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
 }
