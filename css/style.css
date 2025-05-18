@@ -75,16 +75,7 @@ a#download-link.disabled {
   pointer-events: none;
 }
 
-/* レスポンシブ */
-@media only screen and (max-width: 600px) {
-  .brand-logo {
-    font-size: 1rem;
-  }
-  .btn {
-    font-size: 0.6rem;
-    padding: 0 1rem;
-  }
-}
+
 
 #pdf-preview-area {
   display: flex;
@@ -149,8 +140,10 @@ a#download-link.disabled {
 
 /* ヘッダーのダウンロードボタン */
 .header-download {
+	align-items: center;      /* 上下中央に配置 */
+	display: flex;            /* フレックスボックスを使用 */
   position: absolute;
-  top: -47px;               /* ← navの高さに応じて調整 */
+  top: -45px;               /* ← navの高さに応じて調整 */
   right: 1%;
   transform: translateX(-50%);
   z-index: 1000;
@@ -448,6 +441,34 @@ body {
   .drag-over {
     border-width: 3px !important; /* モバイルではより太い枠線 */
   }
+	 /* ヘッダーのアイコン寄せる */
+	#app-header {
+    padding-left: 10px;  
+  }
+	  /* ヘッダーのタイトル文字を左に寄せる */
+  .header-title {
+    margin-left: -10px;
+		font-size: 1.5rem;  
+  }
+	  /* Downloadボタンを右に寄せる */
+  .header-download {
+    right: -20px;  /* 右に寄せる（現在は1%なので負の値で右に寄せる） */
+    transform: translateX(-30%); /* 中心位置の調整（元は-50%） */
+    /* transformのY方向は指定しない（centeringが優先） */
+  
+
+	}
+}
+
+/* レスポンシブ */
+@media only screen and (max-width: 600px) {
+  .brand-logo {
+    font-size: 1rem;
+  }
+  .btn {
+    font-size: 0.6rem;
+    padding: 0 1rem;
+  }
 }
 
 /* ファイル名＋ページ番号を常に下部に固定表示 */
@@ -500,4 +521,161 @@ body {
   height: 70px;
   margin-right: 8px;  /* アイコンとタイトルの間にスペース */
   /* flexbox の align-items: center; によって自動で上下中央揃えになります */
+}
+
+/* 長押し選択モード用のCSS */
+
+/* 選択モード中のページ全体のスタイル */
+body.selection-mode {
+  background-color: #f9f9f9;
+}
+
+/* 選択状態のサムネイル */
+.thumbnail-wrapper.selected {
+  background-color: rgba(10, 29, 77, 0.1);
+  outline: 2px solid #0a1d4d;
+  z-index: 10;
+}
+
+/* 選択モードインジケーター */
+.selection-mode-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #0a1d4d;
+  color: white;
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 選択カウンター */
+#selection-counter {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* 選択モード中のボタン間隔 */
+.selection-mode-indicator button {
+  margin-left: 8px;
+  border-radius: 4px;
+}
+
+/* 選択モード中はヘッダーを下にずらす */
+body.selection-mode #app-header {
+  top: 44px; /* インジケーターの高さに合わせる */
+}
+
+body.selection-mode .top-controls-fixed {
+  top: 100px; /* インジケーター + ヘッダーの高さ */
+}
+
+body.selection-mode main.container {
+  padding-top: 150px; /* インジケーター + ヘッダー + ボタンの高さ */
+}
+
+/* 長押し時の視覚フィードバック */
+.thumbnail-wrapper.long-press {
+  animation: pulse 0.5s 1;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* iPhoneの文字選択機能と競合しないCSS */
+.thumbnail-wrapper {
+  /* iOSのコンテキストメニューを無効化 */
+  -webkit-touch-callout: none;
+  
+  /* テキスト選択を無効化 */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  
+  /* タップ操作の挙動を調整 */
+  touch-action: manipulation;
+}
+
+/* モバイルデバイス向けのレイアウト調整 */
+@media (max-width: 768px) {
+  /* ヘッダーのアイコンと文字を左に寄せる */
+  #app-header {
+    padding-left: 10px;  /* 元の30pxから10pxに変更 */
+  }
+  
+  /* ヘッダーアイコンのサイズと位置調整 */
+  .header-icon {
+    margin-right: 4px;  /* アイコンの右側マージンを小さく */
+    width: 50px;  /* アイコンを少し小さく */
+    height: 50px;
+  }
+  
+  /* PDF jemの文字を左に寄せる */
+  .header-title {
+    font-size: 1.8rem;  /* フォントサイズを少し小さく */
+    margin-left: -5px;  /* 左に5px寄せる */
+  }
+  
+  /* Downloadボタンを右に寄せる */
+  .header-download {
+    right: -10px;  /* 右に20px寄せる（元の位置から調整） */
+    transform: translateX(-30%);  /* 中心位置の調整（元は-50%） */
+  }
+  
+  /* 選択モード関連の調整 */
+  .selection-mode-indicator {
+    padding: 8px 12px;
+  }
+  
+  #selection-counter {
+    font-size: 0.9rem;
+  }
+  
+  .selection-mode-indicator button {
+    font-size: 0.8rem;
+    padding: 0 8px;
+    height: 30px;
+    line-height: 30px;
+  }
+  
+  /* 選択モード中のサムネイル */
+  body.selection-mode .thumbnail-wrapper {
+    transition: background-color 0.2s;
+  }
+  
+  body.selection-mode .thumbnail-wrapper:active {
+    background-color: rgba(10, 29, 77, 0.2);
+  }
+}
+
+/* iPhoneなど小さい画面向け */
+@media (max-width: 375px) {
+  /* よりコンパクトに */
+  .header-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .header-title {
+    font-size: 1.5rem;
+  }
+  
+  /* ダウンロードボタンをさらに右に */
+  .header-download {
+    right: -10px;
+  }
 }

@@ -655,19 +655,58 @@ async function downloadMergedPdf() {
     const mergedBytes = await mergedPdf.save();
     const blob = new Blob([mergedBytes], { type: 'application/pdf' });
     
-    // プログレスバーを削除
-    document.body.removeChild(progressContainer);
+    // 安全なダウンロード方法：Data URLを使用
+    // この方法ではブラウザの「安全ではないダウンロード」警告を回避できる場合がある
+    const reader = new FileReader();
+    reader.onload = function() {
+      // Data URL形式でリンクを作成
+      const dataUrl = reader.result;
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = 'merged.pdf';
+      link.target = '_blank'; // 新しいタブで開く
+      
+      // リンクを表示して自動的にクリック
+      document.body.appendChild(link);
+      
+      // iOS Safariでは直接クリックが必要な場合がある
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+        // iOSの場合はリンクを表示
+        link.style.position = 'fixed';
+        link.style.top = '50%';
+        link.style.left = '50%';
+        link.style.transform = 'translate(-50%, -50%)';
+        link.style.padding = '20px';
+        link.style.backgroundColor = '#2196F3';
+        link.style.color = 'white';
+        link.style.borderRadius = '10px';
+        link.style.textDecoration = 'none';
+        link.style.zIndex = '2000';
+        link.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.3)';
+        link.textContent = 'ここをタップしてPDFをダウンロード';
+        
+        // プログレスバーを削除
+        document.body.removeChild(progressContainer);
+        
+        // 10秒後に非表示
+        setTimeout(() => {
+          if (link.parentNode) {
+            link.parentNode.removeChild(link);
+          }
+        }, 10000);
+      } else {
+        // 他の環境では自動クリック
+        link.click();
+        document.body.removeChild(link);
+        
+        // プログレスバーを削除
+        document.body.removeChild(progressContainer);
+      }
+    };
     
-    // iOSかどうかを判定
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    // Blobをデータ URL に変換
+    reader.readAsDataURL(blob);
     
-    if (isIOS) {
-      // iOS用のダウンロード処理
-      handleIOSDownload(blob);
-    } else {
-      // 他のブラウザ用のダウンロード処理
-      handleNormalDownload(blob);
-    }
   } catch (error) {
     console.error('マージ処理エラー:', error);
     
@@ -679,55 +718,4 @@ async function downloadMergedPdf() {
     
     alert('エラーが発生しました。コンソールをご確認ください。');
   }
-}
-
-// iOS用のダウンロード処理
-function handleIOSDownload(blob) {
-  // Web Share APIが利用可能かチェック
-  if (navigator.share) {
-    // ファイルをシェアする
-    const file = new File([blob], "merged.pdf", { type: "application/pdf" });
-    
-    navigator.share({
-      files: [file],
-      title: 'Merged PDF',
-    }).then(() => {
-      console.log('PDFの共有が成功しました');
-    }).catch((error) => {
-      console.error('シェアエラー:', error);
-      // シェアに失敗した場合は新しいタブでPDFを開く
-      openPDFInNewTab(blob);
-    });
-  } else {
-    // Web Share APIが利用できない場合は新しいタブでPDFを開く
-    openPDFInNewTab(blob);
-  }
-}
-
-// 通常のブラウザ用のダウンロード処理
-function handleNormalDownload(blob) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'merged.pdf';
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  
-  // クリーンアップ
-  setTimeout(() => {
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, 100);
-}
-
-// PDFを新しいタブで開く
-function openPDFInNewTab(blob) {
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  
-  // 少し遅延してURLを解放
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-  }, 1000);
 }
